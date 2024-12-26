@@ -46,6 +46,26 @@ class AdminAddUsersApi(APIView):
         except Exception as e:
             return Response({"msg": "something went wrong","error":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+
+
+class ListUsersView(APIView):
+    def get(self,request):
+        internal_user=request.GET.get("internal_user")
+        license_manager=request.GET.get("license_manager")
+        tender_manager=request.GET.get("tender_manager")
+        users_list=Profile.objects.all()
+
+        if internal_user is not None:
+            users_list = users_list.filter(internal_user=internal_user)
+
+        if license_manager is not None:
+            users_list = users_list.filter(license_manager=license_manager)
+
+        if tender_manager is not None:
+            users_list = users_list.filter(tender_manager=tender_manager)
+
+
+        
 class ChangeAddressApi(APIView):
     def patch(self,request):
         data=request.data

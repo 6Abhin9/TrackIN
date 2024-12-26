@@ -6,6 +6,6 @@ urlpatterns = [
     path('license/',views.AddLicense.as_view()),
     path('list/',views.LicenseListView.as_view()),
     path('edit/',views.UpdateLicenseView.as_view()),
-    path('editpassword/',views.ChangePasswordApi.as_view()),       
-
+    path('editpassword/',views.ChangePasswordApi.as_view()),
+           
 ]
