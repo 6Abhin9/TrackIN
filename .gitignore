@@ -1,0 +1,55 @@
+# Python bytecode files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Django migrations - Ignore all migrations except __init__.py
+**/migrations/*
+!**/migrations/__init__.py
+
+# Environment variables and secrets
+.env
+*.env
+
+# Database files
+*.sqlite3
+*.db
+
+# Media uploads
+/media/
+*/media/*
+
+# Static files
+/static/
+*/static/*
+
+# Node modules (if using npm/yarn for frontend)
+node_modules/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# IDE and editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Cache files
+*.cache
+.cache/
+*.egg-info/
+.eggs/
