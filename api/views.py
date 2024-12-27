@@ -63,6 +63,11 @@ class ListUsersView(APIView):
 
         if tender_manager is not None:
             users_list = users_list.filter(tender_manager=tender_manager)
+        
+        if not users_list:
+            return Response({"msg":"no users found"},status=status.HTTP_200_OK)
+        serializer=RegistrationSerializers(users_list,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
 
 
         
@@ -97,12 +102,6 @@ class ChangePasswordApi(APIView):
         else:
             return Response({"msg":"the passwords do not match"},status=status.HTTP_400_BAD_REQUEST)
         
-
-
-        
-
-
-
 
 class AddLicense(APIView):
     def post(self,request):
