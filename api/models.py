@@ -97,7 +97,29 @@ class Notification(models.Model):
 
 
 
-# class TenderManager(models.Model):
+class TenderManager(models.Model):
+    tender_id=models.CharField(max_length=25)
+    tender_title=models.CharField(max_length=150)
+    issuing_authority=models.TextField()
+    tender_description=models.TextField(null=True, blank=True)
+    tender_attachments=models.FileField()
+    EMD_amount=models.CharField(max_length=50)
+    EMD_payment_status=models.BooleanField()
+    payment_mode=[
+        ('choice1','online'),
+        ('choice2','offline')
+    ]
+    EMD_payment_mode=models.CharField(max_length=100,choices=payment_mode)
+    EMD_payment_date=models.DateField()
+    transaction_number=models.CharField()
+    payment_attachments=models.FileField(null=True,blank=True)
+    forfeiture_status=models.BooleanField()
+    forfeiture_reason=models.TextField()
+    EMD_refund_status=models.BooleanField()
+    EMD_refund_date=models.DateField()
+    bid_amount=models.CharField()
+    bid_outcome=models.BooleanField()
+
 
 
 
