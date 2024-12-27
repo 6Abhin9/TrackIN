@@ -84,6 +84,19 @@ class License(models.Model):
 
     def __str__(self):
         return self.product_name
+    
+
+class Notification(models.Model):
+    profile=models.ForeignKey(Profile,on_delete=models.CASCADE)
+    title=models.CharField(max_length=150,null=True,blank=True)
+    content=models.TextField()
+    time=models.DateTimeField(null=True,blank=True)
+
+    def __str__(self):
+        return self.title
+
+
+
 
 
 

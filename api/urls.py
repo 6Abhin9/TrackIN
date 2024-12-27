@@ -7,5 +7,7 @@ urlpatterns = [
     path('list/',views.LicenseListView.as_view()),
     path('edit/',views.UpdateLicenseView.as_view()),
     path('editpassword/',views.ChangePasswordApi.as_view()),
+    path('listusers/',views.ListUsersView.as_view()),
+    path('deleteusers/',views.DeleteUsersView.as_view()),
            
 ]

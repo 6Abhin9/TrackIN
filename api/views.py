@@ -5,7 +5,7 @@ from .serializers import RegistrationSerializers
 from .models import Registration
 from django.shortcuts import get_object_or_404
 from .models import Profile,License,AdditionalDetails
-from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers
+from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,AdditionalDetailsGetSerializer
 
 
 
@@ -50,26 +50,27 @@ class AdminAddUsersApi(APIView):
 
 class ListUsersView(APIView):
     def get(self,request):
-        internal_user=request.GET.get("internal_user")
-        license_manager=request.GET.get("license_manager")
-        tender_manager=request.GET.get("tender_manager")
-        users_list=Profile.objects.all()
+        role=request.GET.get("role")
+        users_list=AdditionalDetails.objects.all()
 
-        if internal_user is not None:
-            users_list = users_list.filter(internal_user=internal_user)
+        if role is not None:
+            users_list = users_list.filter(profile__role=role)
 
-        if license_manager is not None:
-            users_list = users_list.filter(license_manager=license_manager)
-
-        if tender_manager is not None:
-            users_list = users_list.filter(tender_manager=tender_manager)
-        
         if not users_list:
-            return Response({"msg":"no users found"},status=status.HTTP_200_OK)
-        serializer=RegistrationSerializers(users_list,many=True)
+            return Response({"msg":"no users found"},status=status.HTTP_400_BAD_REQUEST)
+        serializer=AdditionalDetailsGetSerializer(users_list,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
-
+class DeleteUsersView(APIView):
+    def delete(self,request):
+        data=request.data
+        profile_id=data.get("profile_id")
+        if not profile_id:
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        users_list=get_object_or_404(Profile,id=profile_id)
+        users_list.delete()
+        return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
+        
         
 class ChangeAddressApi(APIView):
     def patch(self,request):
@@ -138,7 +139,7 @@ class UpdateLicenseView(APIView):
     def patch(self,request):
         license_id= request.data.get('id')
         if not license_id:
-            return Response({"msg":"An id is required"},status=status.HTTP_200_OK)
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
         
         license_obj=get_object_or_404(License,id=license_id)
         serializer=LicenseDetailsSerializers(license_obj,data=request.data,partial=True)
@@ -164,5 +165,8 @@ class UpdateLicenseView(APIView):
         license_obj.delete()
         return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
     
+
+
+
 
         
