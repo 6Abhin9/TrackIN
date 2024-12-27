@@ -4,8 +4,8 @@ from rest_framework import status
 from .serializers import RegistrationSerializers
 from .models import Registration
 from django.shortcuts import get_object_or_404
-from .models import Profile,License,AdditionalDetails
-from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,AdditionalDetailsGetSerializer
+from .models import Profile,License,AdditionalDetails,Notification
+from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,AdditionalDetailsGetSerializer,NotificationsDetailsSerializers
 
 
 
@@ -138,7 +138,7 @@ class LicenseListView(APIView):
 class UpdateLicenseView(APIView):
     def patch(self,request):
         license_id= request.data.get('id')
-        if not license_id:
+        if not license_id: 
             return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
         
         license_obj=get_object_or_404(License,id=license_id)
@@ -166,7 +166,58 @@ class UpdateLicenseView(APIView):
         return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
     
 
+class SendNotificationView(APIView):
+    def post(self,request):
+        data=request.data
+        serializer=NotificationsDetailsSerializers(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg":"added successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"msg":"failed to add","error":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
+class ViewNotificationView(APIView):
+    def get(self,request):
+        role=request.GET.get("role")
+        notification_list=Notification.objects.all()
+        if role:
+            notification_list = notification_list.filter(profile__role=role)
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UpdateNotificationView(APIView):
+    def patch(self,request):
+        data=request.data
+        profile_id=data.get('id')
+        if not profile_id: 
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        notification=get_object_or_404(Notification,id=profile_id)
+        serializer=NotificationsDetailsSerializers(notification,data=request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg": "editted successfully"},status=status.HTTP_200_OK)
+        else:
+            return Response({"msg": "something went wrong",}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+    def get(self,request):
+        data=request.data
+        profile_id=data.get('id')
+        if not profile_id: 
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        notification=get_object_or_404(Notification,id=profile_id)
+        serializer=NotificationsDetailsSerializers(notification)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+    def delete(self,request):
+        data=request.data
+        profile_id=data.get('id')
+        if not profile_id: 
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        notification=get_object_or_404(Notification,id=profile_id)
+        notification.delete()
+        return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
 
 
         
+

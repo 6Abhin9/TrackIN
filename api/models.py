@@ -97,6 +97,7 @@ class Notification(models.Model):
 
 
 
+# class TenderManager(models.Model):
 
 
 
