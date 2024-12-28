@@ -93,7 +93,7 @@ class Notification(models.Model):
     time=models.DateTimeField(null=True,blank=True)
 
     def __str__(self):
-        return self.title if self.title else "No Title"
+        return self.title
 
 
 # class TenderManager(models.Model):
