@@ -62,6 +62,7 @@ class License(models.Model):
         ('choice2', 'choice2'),
         ('choice3', 'choice3'),
         ('choice4', 'choice4'),
+        
     ]
     product_type=models.CharField(max_length=50,choices=PRODUCT_TYPE)
     product_name=models.CharField(max_length=100)
@@ -96,8 +97,63 @@ class Notification(models.Model):
         return self.title
 
 
+
+class TenderManager(models.Model):
+    tender_id=models.CharField(max_length=25)
+    tender_title=models.CharField(max_length=150)
+    issuing_authority=models.TextField()
+    tender_description=models.TextField(null=True, blank=True)
+    tender_attachments=models.FileField(null=True, blank=True)
+    EMD_amount=models.CharField(max_length=50)
+    EMD_payment_status=models.BooleanField()
+    payment_mode=[
+        ('online','online'),
+        ('offline','offline')
+    ]
+    EMD_payment_mode=models.CharField(max_length=100,choices=payment_mode)
+    EMD_payment_date=models.DateField()
+    transaction_number=models.CharField(max_length=100,null=True,blank=True)
+    payment_attachments=models.FileField(null=True,blank=True)
+    forfeiture_status=models.BooleanField(default=False)
+    forfeiture_reason=models.TextField(null=True,blank=True)
+    EMD_refund_status=models.BooleanField()
+    EMD_refund_date=models.DateField()
+    bid_amount=models.CharField(max_length=100)
+    bid_outcome=models.BooleanField()
+
+    def __str__(self):
+        return self.tender_title
 # class TenderManager(models.Model):
 
 
+class PNDT_License(models.Model):
+    license_number=models.CharField(max_length=50)
+    application_number=models.CharField(max_length=50)
+    submission_date=models.DateField()
+    expiry_date=models.DateField()
+    approval_date=models.DateField()
+    PRODUCT_TYPE = [
+        ('choice1', 'choice1'),
+        ('choice2', 'choice2'),
+        ('choice3', 'choice3'),
+        ('choice4', 'choice4'),
+    ]
+    product_type=models.CharField(max_length=150,choices=PRODUCT_TYPE)
+    product_name=models.TextField()
+    model_number=models.CharField(max_length=50)
+    intended_use=models.TextField()
+    CLASS_OF_DEVICE=[
+        ('class1','class1'),
+        ('class2','class2'),
+        ('class3','class3'),
+        ('ultrasonic','ultrasonic')
+    ]
+    class_of_device=models.CharField(max_length=50, choices=CLASS_OF_DEVICE)
+    software_used=models.TextField()
+    legal_manufacturer=models.TextField()
+    authorize_agent_address=models.TextField()
+    
+    def __str__(self):
+        return self.product_name
 
 

@@ -4,9 +4,10 @@ from rest_framework import status
 from .serializers import RegistrationSerializers
 from .models import Registration
 from django.shortcuts import get_object_or_404
-from .models import Profile,License,AdditionalDetails,Notification
+from .models import Profile,License,AdditionalDetails,Notification,TenderManager,PNDT_License
 from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,AdditionalDetailsGetSerializer,NotificationsDetailsSerializers
-
+from .serializers import TenderDetailsSerializers
+from .serializers import PNDTLicenseSerializers
 
 
 import random
@@ -219,5 +220,87 @@ class UpdateNotificationView(APIView):
         return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
 
 
+
+class AddTenderDetailsView(APIView):
+    def post(self,request):
+        data=request.data
+        serializer=TenderDetailsSerializers(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg":"added successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"msg":"failed to add","error":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+        
+class ChangeForfietStatusView(APIView):
+    def post(self,request):
+        tender_id=request.data.get("tender_id")
+        if not tender_id:
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        tender_obj=get_object_or_404(TenderManager,id=tender_id)
+        forfeiture_reason=request.data.get("forfeiture_reason")
+        if not forfeiture_reason:
+            return Response({"msg":"A reason is required"},status=status.HTTP_400_BAD_REQUEST)
+            
+        tender_obj.forfeiture_reason=forfeiture_reason
+        tender_obj.save()
+
+        return Response({"msg":"forefiet status is true","forfeiture_reason":tender_obj.forfeiture_reason},status=status.HTTP_200_OK)
         
 
+class AddPNDTLicenseView(APIView):
+    def post(self,request):
+        data=request.data
+        serializer=PNDTLicenseSerializers(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg":"added successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"msg":"failed to add","error":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+        
+class ListPNDTLicenseView(APIView):
+    def get(self,request):
+        product_type=request.GET.get("product_type")
+        intended_use=request.GET.get("intended_use")
+        class_of_device=request.GET.get("class_of_device")
+        PNDTlicense_list=PNDT_License.objects.all()
+
+        if product_type:
+            PNDTlicense_list=PNDTlicense_list.filter(product_type=product_type)
+        if intended_use:
+            PNDTlicense_list=PNDTlicense_list.filter(intended_use=intended_use)
+        if class_of_device:
+            PNDTlicense_list=PNDTlicense_list.filter(class_of_device=class_of_device)
+        serializer=PNDTLicenseSerializers(PNDTlicense_list,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+
+
+class UpdatePNDTLicenseView(APIView):
+    def patch(self,request):
+        license_number= request.data.get('license_number')
+        if not license_number: 
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        
+        license_obj=get_object_or_404(PNDT_License,license_number=license_number)
+        serializer=PNDTLicenseSerializers(license_obj,data=request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg":"edited successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"msg":"failed to edit","error":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+        
+    def get(self,request):
+        license_number=request.GET.get('license_number')
+        if not license_number:
+            return Response({"msg":"id is required"},status=status.HTTP_400_BAD_REQUEST)
+        license_obj=get_object_or_404(PNDT_License,license_number=license_number)
+        serializer=PNDTLicenseSerializers(license_obj)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+    def delete(self,request):
+        license_number=request.GET.get('license_number')
+        if not license_number:
+            return Response({"msg":"id is required"},status=status.HTTP_400_BAD_REQUEST)
+        license_obj=get_object_or_404(PNDT_License,license_number=license_number)
+        license_obj.delete()
+        return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)

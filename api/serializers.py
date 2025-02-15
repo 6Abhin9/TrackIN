@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Registration
-from .models import Profile,AdditionalDetails,License,Notification
+from .models import Profile,AdditionalDetails,License,Notification,TenderManager,PNDT_License
 
 
 class RegistrationSerializers(serializers.ModelSerializer):
@@ -40,4 +40,15 @@ class AdditionalDetailsGetSerializer(serializers.ModelSerializer):
 class NotificationsDetailsSerializers(serializers.ModelSerializer):
     class Meta:
         model=Notification
+        fields='__all__'
+
+
+class TenderDetailsSerializers(serializers.ModelSerializer):
+    class Meta:
+        model=TenderManager
+        fields='__all__'
+
+class PNDTLicenseSerializers(serializers.ModelSerializer):
+    class Meta:
+        model=PNDT_License
         fields='__all__'
