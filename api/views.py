@@ -58,7 +58,7 @@ class ListUsersView(APIView):
             users_list = users_list.filter(profile__role=role)
 
         if not users_list:
-            return Response({"msg":"no users found"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg":"users not found"},status=status.HTTP_400_BAD_REQUEST)
         serializer=AdditionalDetailsGetSerializer(users_list,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
