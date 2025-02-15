@@ -69,7 +69,7 @@ class DeleteUsersView(APIView):
             return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
         users_list=get_object_or_404(Profile,id=profile_id)
         users_list.delete()
-        return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
+        return Response({'msg':'deletion succesfull'},status=status.HTTP_200_OK)
         
         
 class ChangeAddressApi(APIView):
