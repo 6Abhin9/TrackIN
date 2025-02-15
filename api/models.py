@@ -123,6 +123,7 @@ class TenderManager(models.Model):
 
     def __str__(self):
         return self.tender_title
+# class TenderManager(models.Model):
 
 
 class PNDT_License(models.Model):
