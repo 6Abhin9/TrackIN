@@ -11,7 +11,10 @@ urlpatterns = [
     path('deleteusers/',views.DeleteUsersView.as_view()),
     path('sendnotification/',views.SendNotificationView.as_view()),
     path('viewnotification/',views.ViewNotificationView.as_view()),
-    path('updatenotification/',views.UpdateNotificationView.as_view())
-
-           
+    path('updatenotification/',views.UpdateNotificationView.as_view()),
+    path('addtenderdetails/',views.AddTenderDetailsView.as_view()),
+    path('changestatus/',views.ChangeForfietStatusView.as_view()),
+    path('addpndtlicense/',views.AddPNDTLicenseView.as_view()),
+    path('listpndtlicense/',views.ListPNDTLicenseView.as_view()),
+    path('updatepndtlicense/',views.UpdatePNDTLicenseView.as_view())  
 ]
