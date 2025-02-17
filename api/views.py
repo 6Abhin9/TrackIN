@@ -330,4 +330,30 @@ class UpdatePNDTLicenseView(APIView):
         license_obj.delete()
         return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
     
+from datetime import datetime, timedelta
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+from .models import License
 
+class ExpireNotification(APIView):
+    def get(self, request):
+        today = datetime.today().date()
+        notifications = []
+
+        licenses = License.objects.all()
+        for license in licenses:
+            if license.expiry_date:
+                days_left = (license.expiry_date - today).days
+                if days_left in [10, 5, 1]:  
+                    notifications.append({
+                        "license_id": license.id,
+                        "license_name": license.name,
+                        "expiry_date": license.expiry_date,
+                        "days_left": days_left,
+                        "message": f"Your license '{license.name}' is expiring in {days_left} days!",
+                    })
+
+        if notifications:
+            return Response({"notifications": notifications}, status=status.HTTP_200_OK)
+        return Response({"msg": "No licenses are expiring soon."}, status=status.HTTP_200_OK)
