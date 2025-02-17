@@ -9,4 +9,3 @@ admin.site.register(License)
 admin.site.register(Notification)
 admin.site.register(TenderManager)
 admin.site.register(PNDT_License)
-

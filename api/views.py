@@ -13,6 +13,31 @@ from .serializers import PNDTLicenseSerializers
 import random
 import string
 
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
+
+class LoginAPIView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        # Authenticate user
+        user = authenticate(username=email, password=password)
+
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'message': 'Login successful',
+                'user':user.id,
+                'role':user.role
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 def generate_random_password(length=12):
     lowercase_letters = string.ascii_lowercase
     uppercase_letters = string.ascii_uppercase
@@ -304,3 +329,5 @@ class UpdatePNDTLicenseView(APIView):
         license_obj=get_object_or_404(PNDT_License,license_number=license_number)
         license_obj.delete()
         return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
+    
+

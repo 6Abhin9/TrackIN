@@ -16,5 +16,9 @@ urlpatterns = [
     path('changestatus/',views.ChangeForfietStatusView.as_view()),
     path('addpndtlicense/',views.AddPNDTLicenseView.as_view()),
     path('listpndtlicense/',views.ListPNDTLicenseView.as_view()),
-    path('updatepndtlicense/',views.UpdatePNDTLicenseView.as_view())  
+    path('updatepndtlicense/',views.UpdatePNDTLicenseView.as_view()),
+
+    
+    path('login/',views.LoginAPIView.as_view())  
+
 ]

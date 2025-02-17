@@ -12,24 +12,29 @@ class Registration(models.Model):
         return self.name
 
 class Profile(AbstractUser):
-    REQUIRED_FIELDS=[]
+    REQUIRED_FIELDS=['username']
     USERNAME_FIELD='email'
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('license_manager', 'License Manager'),
         ('tender_manager', 'Tender Manager'),
-        ('internal_user', 'Internal User'),
+        ('pndt_license_manager', 'PNDT License Manager'),
+        ('internal_license_viewer','Internal License Viewer'),
+        ('external_license_viewer','External License Viewer'),
+        ('tender_viewer','Tender Viewer'),
+        ('pndt_license_viewer','PNDT License Viewer'),
     ]
 
 
     username=models.CharField(max_length=100,null=True,blank=True)
     email=models.EmailField(unique=True)
     password_str=models.CharField(max_length=255,null=True,blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=30, choices=ROLE_CHOICES)
+    
     
     
     def __str__(self):
-        return self.username
+        return self.email
 
 class AdditionalDetails(models.Model):
     profile=models.OneToOneField(Profile,on_delete=models.CASCADE)
