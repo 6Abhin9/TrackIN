@@ -357,3 +357,29 @@ class ExpireNotification(APIView):
         if notifications:
             return Response({"notifications": notifications}, status=status.HTTP_200_OK)
         return Response({"msg": "No licenses are expiring soon."}, status=status.HTTP_200_OK)
+
+
+
+from .reports import report_as_excel  
+class DownloadExcelReport(APIView):
+    def get(self, request):
+        file_name = "LICENSE_REPORT"
+        title = "License Report"
+        mode = 1  
+
+        headers = [
+            ("S.No", 10),
+            ("License Code", 20),
+            ("License Name", 30),
+        ]
+
+        admission_data = {}
+        courses = License.objects.all() 
+        for index, course in enumerate(courses, start=1):
+            admission_data[index] = {
+                "liscense_id": course.code,
+                "course_name": course.name,
+               
+            }
+
+        return report_as_excel(title, headers, admission_data, file_name, mode)

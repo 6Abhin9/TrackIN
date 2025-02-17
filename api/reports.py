@@ -46,12 +46,10 @@ def report_as_excel(title, header, admission_data, file_name, mode):
         if mode == 1:
             row_data = [
                 row_num - 3,
-                admission_data[key]['course_code'],
+                admission_data[key]['License_id'],
                 admission_data[key]['course_name'],
                 admission_data[key]['total_students'],
-                admission_data[key]['paid_students'],
-                admission_data[key]['course_code'],
-                admission_data[key]['course_code'],
+             
             ]
 
             for col_num, cell_value in enumerate(row_data, 1):

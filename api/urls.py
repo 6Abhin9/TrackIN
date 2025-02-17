@@ -18,8 +18,8 @@ urlpatterns = [
     path('listpndtlicense/',views.ListPNDTLicenseView.as_view()),
     path('updatepndtlicense/',views.UpdatePNDTLicenseView.as_view()),
     path('expire_notification/',views.ExpireNotification.as_view()),
-
     
-    path('login/',views.LoginAPIView.as_view())  
+    path('login/',views.LoginAPIView.as_view())  ,
+    path('download_license_excel/',views.DownloadExcelReport.as_view()) , 
 
 ]
