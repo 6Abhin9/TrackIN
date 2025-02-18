@@ -8,6 +8,7 @@ from .models import Profile,License,AdditionalDetails,Notification,TenderManager
 from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,AdditionalDetailsGetSerializer,NotificationsDetailsSerializers
 from .serializers import TenderDetailsSerializers
 from .serializers import PNDTLicenseSerializers
+from datetime import datetime, timedelta
 
 
 import random
@@ -330,11 +331,8 @@ class UpdatePNDTLicenseView(APIView):
         license_obj.delete()
         return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
     
-from datetime import datetime, timedelta
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
-from .models import License
+
+
 
 class ExpireNotification(APIView):
     def get(self, request):
