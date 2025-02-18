@@ -381,3 +381,27 @@ class DownloadExcelReport(APIView):
             }
 
         return report_as_excel(title, headers, admission_data, file_name, mode)
+
+
+
+
+class TenderViewerNotificationView(APIView):
+    def get(self,request):
+        role=request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role__in=['tender_manager','admin'])
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class PNDTLicenseViewerNotificationView(APIView):
+    def get(self,request):
+        role=request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role__in=['pndt_license_manager','admin'])
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class LicenseViewerNotificationView(APIView):
+    def get(self,request):
+        role=request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role__in=['license_manager','admin'])
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

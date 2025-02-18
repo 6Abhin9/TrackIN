@@ -22,4 +22,8 @@ urlpatterns = [
     path('login/',views.LoginAPIView.as_view())  ,
     path('download_license_excel/',views.DownloadExcelReport.as_view()) , 
 
+    path('tendernotifications/', views.TenderViewerNotificationView.as_view()),
+    path('pndtnotifications/', views.PNDTLicenseViewerNotificationView.as_view()),
+    path('licensenotifications/', views.LicenseViewerNotificationView.as_view()),
+
 ]
