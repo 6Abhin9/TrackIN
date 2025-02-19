@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'rest_framework',
+    'background_task',
 ]
 
 MIDDLEWARE = [
@@ -107,7 +108,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
+CELERY_TIMEZONE = 'Asia/Kolkata'  # Same as Django's TIME_ZONE
+
 
 USE_I18N = True
 
@@ -125,3 +128,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.Profile'
 
+
+
+# settings.py

@@ -340,16 +340,16 @@ class ExpireNotification(APIView):
         notifications = []
 
         licenses = License.objects.all()
-        for license in licenses:
-            if license.expiry_date:
-                days_left = (license.expiry_date - today).days
+        for licen in licenses:
+            if licen.expiry_date:
+                days_left = (licen.expiry_date - today).days
                 if days_left in [10, 5, 1]:  
                     notifications.append({
-                        "license_id": license.id,
-                        "license_name": license.name,
-                        "expiry_date": license.expiry_date,
+                        "license_id": licen.id,
+                        "license_name": licen.name,
+                        "expiry_date": licen.expiry_date,
                         "days_left": days_left,
-                        "message": f"Your license '{license.name}' is expiring in {days_left} days!",
+                        "message": f"Your license '{licen.name}' is expiring in {days_left} days!",
                     })
 
         if notifications:
@@ -381,3 +381,6 @@ class DownloadExcelReport(APIView):
             }
 
         return report_as_excel(title, headers, admission_data, file_name, mode)
+
+
+
