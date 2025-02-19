@@ -9,6 +9,7 @@ from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,
 from .serializers import TenderDetailsSerializers
 from .serializers import PNDTLicenseSerializers
 from datetime import datetime, timedelta
+from .models import PlayerId
 
 
 import random
@@ -22,11 +23,18 @@ class LoginAPIView(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+        player_id = request.data.get('player_id')
+
+      
 
         # Authenticate user
         user = authenticate(username=email, password=password)
 
         if user is not None:
+            if player_id:
+                player, created = PlayerId.objects.get_or_create(player_id=player_id)
+                if created:
+                    player.save()
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),
@@ -382,5 +390,23 @@ class DownloadExcelReport(APIView):
 
         return report_as_excel(title, headers, admission_data, file_name, mode)
 
-
-
+class TenderViewerNotificationView(APIView):
+    def get(self,request):
+        role=request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role__in=['tender_manager','admin'])
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class PNDTLicenseViewerNotificationView(APIView):
+    def get(self,request):
+        role=request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role__in=['pndt_license_manager','admin'])
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class LicenseViewerNotificationView(APIView):
+    def get(self,request):
+        role=request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role__in=['license_manager','admin'])
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
