@@ -365,30 +365,41 @@ class ExpireNotification(APIView):
         return Response({"msg": "No licenses are expiring soon."}, status=status.HTTP_200_OK)
 
 
-
-from .reports import report_as_excel  
+from .reports import report_as_excel
 class DownloadExcelReport(APIView):
     def get(self, request):
         file_name = "LICENSE_REPORT"
         title = "License Report"
-        mode = 1  
 
         headers = [
             ("S.No", 10),
-            ("License Code", 20),
-            ("License Name", 30),
+            ("Application Type", 25),
+            ("License Number", 20),
+            ("Date of Approval", 15),
+            ("Expiry Date", 15),
+            ("Product Name", 30),
+            ("Model Number", 20),
+            ("Class of Device", 20),
         ]
 
-        admission_data = {}
-        courses = License.objects.all() 
-        for index, course in enumerate(courses, start=1):
-            admission_data[index] = {
-                "liscense_id": course.code,
-                "course_name": course.name,
-               
-            }
+        licenses = License.objects.all()
+        data = [
+            [
+                index,
+                lic.application_type,
+                lic.license_number,
+                lic.date_of_approval.strftime('%Y-%m-%d'),
+                lic.expiry_date.strftime('%Y-%m-%d'),
+                lic.product_name,
+                lic.model_number,
+                lic.class_of_device_type,
+            ]
+            for index, lic in enumerate(licenses, start=1)
+        ]
 
-        return report_as_excel(title, headers, admission_data, file_name, mode)
+        return report_as_excel(title, headers, data, file_name)
+    
+
 
 class TenderViewerNotificationView(APIView):
     def get(self,request):
@@ -410,3 +421,5 @@ class LicenseViewerNotificationView(APIView):
         notification_list = Notification.objects.filter(profile__role__in=['license_manager','admin'])
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+

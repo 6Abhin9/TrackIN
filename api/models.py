@@ -163,3 +163,8 @@ class PNDT_License(models.Model):
         return self.product_name
 
 
+class PlayerId(models.Model):
+    player_id=models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.player_id

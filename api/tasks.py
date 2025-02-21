@@ -2,14 +2,16 @@ from background_task import background
 from datetime import datetime
 from onesignal_sdk.client import Client
 from django.conf import settings
-from .models import License, Profile  # Assuming Profile model has user details
+from .models import License,PlayerId  # Assuming Profile model has user details
+import os
 
 # OneSignal Configuration
-ONESIGNAL_APP_ID = ''
-ONESIGNAL_API_KEY = ''
+ONESIGNAL_APP_ID = os.getenv('APP_ID', '')
+ONESIGNAL_API_KEY = os.getenv('API_KEY', '')
+
 onesignal_client = Client(app_id=ONESIGNAL_APP_ID, rest_api_key=ONESIGNAL_API_KEY)
 
-@background(schedule=10)  
+@background(schedule=300)  
 def check_expiring_licenses():
     today = datetime.today().date()
     notifications = []
@@ -18,7 +20,7 @@ def check_expiring_licenses():
     for licen in licenses:
         if licen.expiry_date:
             days_left = (licen.expiry_date - today).days
-            if days_left in [10, 5, 1]:  # Send notifications on these days
+            if days_left in [10, 5, 1]: 
                 notifications.append({
                     "license_id": licen.id,
                     "license_name": licen.name,
@@ -27,9 +29,8 @@ def check_expiring_licenses():
                     "message": f"Your license '{licen.name}' is expiring in {days_left} days!",
                 })
 
-                # Fetch users associated with this license
-                users = Profile.objects.filter(license=licen)  # Assuming Profile has license relation
-                user_ids = [user.onesignal_player_id for user in users if user.onesignal_player_id]  # Collect OneSignal IDs
+                users = PlayerId.objects.all() 
+                user_ids = users.values_list('player_id', flat=True)
 
                 if user_ids:
                     send_push_notification(user_ids, licen.name, days_left)
@@ -37,7 +38,7 @@ def check_expiring_licenses():
     if notifications:
         print("Expiring Licenses:", notifications)
     else:
-        print("No licenses are expiring soon.")
+        print("No licenses are expiring soon." ,datetime.now())
 
 def send_push_notification(user_ids, license_name, days_left):
     """Send push notifications using OneSignal"""
