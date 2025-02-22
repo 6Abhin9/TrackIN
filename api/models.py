@@ -56,8 +56,8 @@ class License(models.Model):
     ]
 
     application_type=models.CharField(max_length=50,choices=LICENSE_TYPE)
-    application_number=models.CharField(max_length=50)
-    license_number=models.CharField(max_length=50)
+    application_number=models.CharField(max_length=50, unique=True)
+    license_number=models.CharField(max_length=50, unique=True)
     date_of_submission=models.DateField()
     date_of_approval=models.DateField()
     expiry_date=models.DateField()
@@ -105,7 +105,7 @@ class Notification(models.Model):
 
 
 class TenderManager(models.Model):
-    tender_id=models.CharField(max_length=25)
+    tender_id=models.CharField(max_length=25, primary_key=True)
     tender_title=models.CharField(max_length=150)
     issuing_authority=models.TextField()
     tender_description=models.TextField(null=True, blank=True)
@@ -116,14 +116,14 @@ class TenderManager(models.Model):
         ('online','online'),
         ('offline','offline')
     ]
-    EMD_payment_mode=models.CharField(max_length=100,choices=payment_mode)
-    EMD_payment_date=models.DateField()
+    EMD_payment_mode=models.CharField(max_length=100,choices=payment_mode,null=True,blank=True)
+    EMD_payment_date=models.DateField(null=True,blank=True)
     transaction_number=models.CharField(max_length=100,null=True,blank=True)
     payment_attachments=models.FileField(null=True,blank=True)
     forfeiture_status=models.BooleanField(default=False)
     forfeiture_reason=models.TextField(null=True,blank=True)
     EMD_refund_status=models.BooleanField()
-    EMD_refund_date=models.DateField()
+    EMD_refund_date=models.DateField(null=True,blank=True)
     bid_amount=models.CharField(max_length=100)
     bid_outcome=models.BooleanField()
 
