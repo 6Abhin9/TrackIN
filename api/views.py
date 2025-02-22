@@ -423,3 +423,59 @@ class LicenseViewerNotificationView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class TenderStatusView(APIView):
+    def get(self, request):
+        status_filter = request.GET.get("status")
+
+        tenders = TenderManager.objects.all()
+        completed_tenders = []
+        rejected_tenders = []
+        pending_tenders = []
+
+        for tender in tenders:
+            if tender.EMD_refund_status:
+                tender_status = "Completed"
+                completed_tenders.append({
+                    "tender_id": tender.tender_id,
+                    "tender_title": tender.tender_title,
+                    "issuing_authority": tender.issuing_authority,
+                    "EMD_amount": tender.EMD_amount,
+                    "bid_amount": tender.bid_amount,
+                    "EMD_refund_date": tender.EMD_refund_date,
+                    "tender_status": tender_status
+                })
+            elif not tender.EMD_refund_status and not tender.forfeiture_status:
+                tender_status = "Rejected"
+                rejected_tenders.append({
+                    "tender_id": tender.tender_id,
+                    "tender_title": tender.tender_title,
+                    "issuing_authority": tender.issuing_authority,
+                    "EMD_amount": tender.EMD_amount,
+                    "bid_amount": tender.bid_amount,
+                    "EMD_refund_date": tender.EMD_refund_date,
+                    "tender_status": tender_status
+                })
+            else:
+                tender_status = "Pending"
+                pending_tenders.append({
+                    "tender_id": tender.tender_id,
+                    "tender_title": tender.tender_title,
+                    "issuing_authority": tender.issuing_authority,
+                    "EMD_amount": tender.EMD_amount,
+                    "bid_amount": tender.bid_amount,
+                    "EMD_refund_date": tender.EMD_refund_date,
+                    "tender_status": tender_status
+                })
+
+        if status_filter == "completed":
+            return Response({"tenders": completed_tenders}, status=status.HTTP_200_OK)
+        elif status_filter == "rejected":
+            return Response({"tenders": rejected_tenders}, status=status.HTTP_200_OK)
+        elif status_filter == "pending":
+            return Response({"tenders": pending_tenders}, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "completed_count": len(completed_tenders),
+                "rejected_count": len(rejected_tenders),
+                "pending_count": len(pending_tenders)
+            }, status=status.HTTP_200_OK)
