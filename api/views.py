@@ -478,4 +478,4 @@ class TenderStatusView(APIView):
                 "completed_count": len(completed_tenders),
                 "rejected_count": len(rejected_tenders),
                 "pending_count": len(pending_tenders)
-            }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_200_OK) 
