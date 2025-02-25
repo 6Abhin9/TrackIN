@@ -1,9 +1,15 @@
 asgiref==3.8.1
 distlib==0.3.9
 Django==5.1.4
+django-background-tasks==1.2.8
 djangorestframework==3.15.2
+djangorestframework_simplejwt==5.4.0
+et_xmlfile==2.0.0
 filelock==3.16.1
+openpyxl==3.1.5
 platformdirs==4.3.6
+PyJWT==2.10.1
+six==1.17.0
 sqlparse==0.5.2
 tzdata==2024.2
 virtualenv==20.28.0
