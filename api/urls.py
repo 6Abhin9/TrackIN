@@ -5,7 +5,6 @@ urlpatterns = [
     path('addpersonaldetails/',views.AddPersonalDetailsApi.as_view()),
     path('editpersonaldetails/',views.EditPersonalDetailsApi.as_view()),
     path('changeaccountaddress/',views.ChangeAddressApi.as_view()),
-    path('addaddionaldetails/',views.AddAdditionalDetailsApi.as_view()),
     path('license/',views.AddLicense.as_view()),
     path('list/',views.LicenseListView.as_view()),
     path('edit/',views.UpdateLicenseView.as_view()),

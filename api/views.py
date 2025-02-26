@@ -10,6 +10,7 @@ from .serializers import TenderDetailsSerializers
 from .serializers import PNDTLicenseSerializers
 from datetime import datetime, timedelta
 from .models import PlayerId
+from datetime import datetime
 
 import random
 import string
@@ -203,7 +204,7 @@ class EditPersonalDetailsApi(APIView):
         except Exception as e:
             return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-class AddAdditionalDetailsApi(APIView):
+'''class AddAdditionalDetailsApi(APIView):
     def post(self, request):
         # Create a mutable copy of request.data
         data = request.data.copy()  # This makes the QueryDict mutable
@@ -236,7 +237,7 @@ class AddAdditionalDetailsApi(APIView):
         except Profile.DoesNotExist:
             return Response({"msg": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)'''
         
 class ChangeAddressApi(APIView):
     def patch(self, request):
@@ -282,23 +283,30 @@ class AddLicense(APIView):
         
 
 class LicenseListView(APIView):
-    def get(self,request):
-        application_type=request.GET.get("application_type",None)
-        product_type=request.GET.get("product_type")
-        product_name=request.GET.get("product_name")
-        class_of_device_type=request.GET.get("class_of_device_type")
-        license_list=License.objects.all()
+    def get(self, request):
+        application_type = request.GET.get("application_type", None)
+        product_type = request.GET.get("product_type", None)
+        class_of_device_type = request.GET.get("class_of_device_type", None)
+        expiry_start_date = request.GET.get("expiry_start_date", None)
+        expiry_end_date = request.GET.get("expiry_end_date", None)
+
+        license_list = License.objects.all()
 
         if application_type:
-            license_list=license_list.filter(application_type=application_type)
+            license_list = license_list.filter(application_type=application_type)
         if product_type:
-            license_list=license_list.filter(product_type=product_type)
-        if product_name:
-            license_list=license_list.filter(product_name=product_name)
+            license_list = license_list.filter(product_type=product_type)
         if class_of_device_type:
-            license_list=license_list.filter(class_of_device_type=class_of_device_type)
-        serializer=LicenseDetailsSerializers(license_list,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+            license_list = license_list.filter(class_of_device_type=class_of_device_type)
+        if expiry_start_date and expiry_end_date:
+            # Convert string dates to datetime objects
+            start_date = datetime.strptime(expiry_start_date, "%Y-%m-%d").date()
+            end_date = datetime.strptime(expiry_end_date, "%Y-%m-%d").date()
+            # Filter licenses within the date range
+            license_list = license_list.filter(expiry_date__range=[start_date, end_date])
+
+        serializer = LicenseDetailsSerializers(license_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 class UpdateLicenseView(APIView):

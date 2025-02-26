@@ -94,7 +94,7 @@ class License(models.Model):
     legal_manufacturer=models.TextField(null=True,blank=True)
     agent_address=models.TextField(null=True,blank=True)
     accesories=models.TextField(null=True,blank=True)
-    shell_life=models.TextField(null=True,blank=True)
+    shelf_life=models.TextField(null=True,blank=True)
     pack_size=models.IntegerField(default=0)
     attachments=models.FileField(null=True,blank=True)
 
