@@ -35,6 +35,16 @@ class Profile(AbstractUser):
     
     def __str__(self):
         return self.email
+    
+class PersonalDetails(models.Model):
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='personal_details')
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=50, null=True, blank=True)  # Free-text input
+    blood_group = models.CharField(max_length=50, null=True, blank=True)  # Free-text input
+    nationality = models.CharField(max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return f"Personal Details for {self.profile.email}"
 
 class AdditionalDetails(models.Model):
     profile=models.OneToOneField(Profile,on_delete=models.CASCADE)

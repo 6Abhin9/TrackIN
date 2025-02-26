@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Registration
+from .models import PersonalDetails, Registration
 from .models import Profile,AdditionalDetails,License,Notification,TenderManager,PNDT_License
 
 
@@ -12,6 +12,23 @@ class ProfileSerializers(serializers.ModelSerializer):
     class Meta:
         model=Profile
         fields='__all__'
+
+class PersonalDetailsSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = PersonalDetails
+        fields = '__all__'
+
+    def validate_gender(self, value):
+        # Optional: Add validation for gender
+        if value and len(value.strip()) == 0:
+            raise serializers.ValidationError("Gender cannot be empty.")
+        return value
+
+    def validate_blood_group(self, value):
+        # Optional: Add validation for blood group
+        if value and len(value.strip()) == 0:
+            raise serializers.ValidationError("Blood group cannot be empty.")
+        return value
 
 class AdditionalDetailsSerializers(serializers.ModelSerializer):
     class Meta:
