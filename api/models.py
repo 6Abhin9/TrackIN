@@ -157,6 +157,45 @@ class PNDT_License(models.Model):
     product_type=models.CharField(max_length=150,choices=PRODUCT_TYPE)
     product_name=models.TextField()
     model_number=models.CharField(max_length=50)
+    INDIAN_STATES = [
+        ('AN', 'Andaman and Nicobar Islands'),
+        ('AP', 'Andhra Pradesh'),
+        ('AR', 'Arunachal Pradesh'),
+        ('AS', 'Assam'),
+        ('BR', 'Bihar'),
+        ('CH', 'Chandigarh'),
+        ('CT', 'Chhattisgarh'),
+        ('DN', 'Dadra and Nagar Haveli and Daman and Diu'),
+        ('DL', 'Delhi'),
+        ('GA', 'Goa'),
+        ('GJ', 'Gujarat'),
+        ('HR', 'Haryana'),
+        ('HP', 'Himachal Pradesh'),
+        ('JK', 'Jammu and Kashmir'),
+        ('JH', 'Jharkhand'),
+        ('KA', 'Karnataka'),
+        ('KL', 'Kerala'),
+        ('LA', 'Ladakh'),
+        ('LD', 'Lakshadweep'),
+        ('MP', 'Madhya Pradesh'),
+        ('MH', 'Maharashtra'),
+        ('MN', 'Manipur'),
+        ('ML', 'Meghalaya'),
+        ('MZ', 'Mizoram'),
+        ('NL', 'Nagaland'),
+        ('OD', 'Odisha'),
+        ('PY', 'Puducherry'),
+        ('PB', 'Punjab'),
+        ('RJ', 'Rajasthan'),
+        ('SK', 'Sikkim'),
+        ('TN', 'Tamil Nadu'),
+        ('TG', 'Telangana'),
+        ('TR', 'Tripura'),
+        ('UP', 'Uttar Pradesh'),
+        ('UT', 'Uttarakhand'),
+        ('WB', 'West Bengal'),
+    ]
+    state = models.CharField(max_length=2, choices=INDIAN_STATES, default='KL')
     intended_use=models.TextField()
     CLASS_OF_DEVICE=[
         ('class1','class1'),
@@ -165,9 +204,10 @@ class PNDT_License(models.Model):
         ('ultrasonic','ultrasonic')
     ]
     class_of_device=models.CharField(max_length=50, choices=CLASS_OF_DEVICE)
-    software_used=models.TextField()
+    software=models.BooleanField(default=False)
     legal_manufacturer=models.TextField()
     authorize_agent_address=models.TextField()
+    attachments=models.FileField(null=True,blank=True)
     
     def __str__(self):
         return self.product_name
