@@ -16,7 +16,7 @@ import random
 import string
 
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken 
 from django.contrib.auth.models import User
 
 class LoginAPIView(APIView):
@@ -24,8 +24,6 @@ class LoginAPIView(APIView):
         email = request.data.get('email')
         password = request.data.get('password')
         player_id = request.data.get('player_id')
-
-      
 
         # Authenticate user
         user = authenticate(username=email, password=password)
@@ -35,18 +33,38 @@ class LoginAPIView(APIView):
                 player, created = PlayerId.objects.get_or_create(player_id=player_id)
                 if created:
                     player.save()
+
+            # Fetch additional details
+            personal_details = PersonalDetails.objects.filter(profile=user).first()
+            additional_details = AdditionalDetails.objects.filter(profile=user).first()
+
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'message': 'Login successful',
-                'user':user.id,
-                'role':user.role
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'role': user.role,
+                },
+                'personal_details': {
+                    'date_of_birth': personal_details.date_of_birth if personal_details else None,
+                    'gender': personal_details.gender if personal_details else None,
+                    'blood_group': personal_details.blood_group if personal_details else None,
+                    'nationality': personal_details.nationality if personal_details else None,
+                },
+                'additional_details': {
+                    'state': additional_details.state if additional_details else None,
+                    'district': additional_details.district if additional_details else None,
+                    'pincode': additional_details.pincode if additional_details else None,
+                    'phone': additional_details.phone if additional_details else None,
+                    'bio': additional_details.bio if additional_details else None,
+                }
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
+        
 def generate_random_password(length=12):
     lowercase_letters = string.ascii_lowercase
     uppercase_letters = string.ascii_uppercase
@@ -172,6 +190,25 @@ class AddPersonalDetailsApi(APIView):
             return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class EditPersonalDetailsApi(APIView):
+    def get(self, request, profile_id):
+        try:
+            # Fetch the profile
+            profile = Profile.objects.get(id=profile_id)
+
+            # Fetch the PersonalDetails record for the profile
+            personal_details = PersonalDetails.objects.get(profile=profile)
+
+            # Serialize the data
+            serializer = PersonalDetailsSerializers(personal_details)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Profile.DoesNotExist:
+            return Response({"msg": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        except PersonalDetails.DoesNotExist:
+            return Response({"msg": "Personal details not found for this profile"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def patch(self, request):
         # Create a mutable copy of request.data
         data = request.data.copy()
@@ -240,16 +277,37 @@ class EditPersonalDetailsApi(APIView):
             return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)'''
         
 class ChangeAddressApi(APIView):
-    def patch(self, request):
-        data = request.data
-        profile_id = data.get("profile_id")
-        additionaldetails = get_object_or_404(AdditionalDetails, profile__id=profile_id)
-        serializer = AdditionalDetailsSerializers(additionaldetails, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"msg": "Edited successfully"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"msg": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, profile_id):
+        try:
+            # Fetch the AdditionalDetails record for the profile
+            additional_details = AdditionalDetails.objects.get(profile__id=profile_id)
+
+            # Serialize the data
+            serializer = AdditionalDetailsSerializers(additional_details)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except AdditionalDetails.DoesNotExist:
+            return Response({"msg": "Additional details not found for this profile"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def patch(self, request, profile_id):
+        try:
+            # Fetch the AdditionalDetails record for the profile
+            additional_details = AdditionalDetails.objects.get(profile__id=profile_id)
+
+            # Validate and update the AdditionalDetails
+            serializer = AdditionalDetailsSerializers(additional_details, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"msg": "Additional details updated successfully"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"msg": "Invalid data", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        except AdditionalDetails.DoesNotExist:
+            return Response({"msg": "Additional details not found for this profile"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class ChangePasswordApi(APIView):
     def get(self,request):

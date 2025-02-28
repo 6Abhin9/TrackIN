@@ -2,9 +2,10 @@ from django.urls import path
 from . import views
 urlpatterns = [
     path('addusers/',views.AdminAddUsersApi.as_view()),
-    path('addpersonaldetails/',views.AddPersonalDetailsApi.as_view()),
-    path('editpersonaldetails/',views.EditPersonalDetailsApi.as_view()),
-    path('changeaccountaddress/',views.ChangeAddressApi.as_view()),
+    path('addpersonaldetails/',views.AddPersonalDetailsApi.as_view()), #for testing only no need to connect
+    path('editpersonaldetails/<int:profile_id>/', views.EditPersonalDetailsApi.as_view(), name='editpersonaldetails-get'),
+    path('editpersonaldetails/', views.EditPersonalDetailsApi.as_view(), name='editpersonaldetails-patch'),
+    path('changeaccountaddress/<int:profile_id>/', views.ChangeAddressApi.as_view(), name='changeaccountaddress'),
     path('license/',views.AddLicense.as_view()),
     path('list/',views.LicenseListView.as_view()),
     path('edit/',views.UpdateLicenseView.as_view()),
