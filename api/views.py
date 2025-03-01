@@ -676,3 +676,59 @@ class TenderStatusView(APIView):
                 "rejected_count": len(rejected_tenders),
                 "pending_count": len(pending_tenders)
             }, status=status.HTTP_200_OK) 
+
+class ListTenderView(APIView):
+    def get(self,request):
+        EMD_payment_status=request.GET.get("EMD_payment_status")
+        forfeiture_status=request.GET.get("forfeiture_status")
+        EMD_refund_status=request.GET.get("EMD_refund_status")
+        ListTenderView=TenderManager.objects.all()
+
+        if EMD_payment_status:
+            ListTenderView=ListTenderView.filter(EMD_payment_status=EMD_payment_status)
+        if EMD_payment_status:
+            ListTenderView=ListTenderView.filter(forfeiture_status=forfeiture_status)
+        if EMD_refund_status:
+            ListTenderView=ListTenderView.filter(EMD_refund_status=EMD_refund_status)
+        serializer=TenderDetailsSerializers(ListTenderView,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+class UpdateTenderView(APIView):
+    def patch(self, request):
+        tender_id = request.data.get('tender_id') 
+        if not tender_id:
+            return Response({"msg": "A tender_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tender_obj = get_object_or_404(TenderManager, tender_id=tender_id)
+        
+        serializer = TenderDetailsSerializers(tender_obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg": "Tender updated successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"msg": "Failed to update", "error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    
+    def get(self, request):
+        tender_id = request.GET.get('tender_id')
+        if not tender_id:
+            return Response({"msg": "id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tender_obj = TenderManager.objects.filter(tender_id=tender_id).first()
+        if not tender_obj:
+            return Response({"msg": "Tender not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = TenderDetailsSerializers(tender_obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        tender_id = request.GET.get('tender_id')
+        if not tender_id:
+            return Response({"msg": "id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tender_obj = TenderManager.objects.filter(tender_id=tender_id).first()
+        if not tender_obj:
+            return Response({"msg": "Tender not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        tender_obj.delete()
+        return Response({"msg": "Deleted successfully"}, status=status.HTTP_200_OK)

@@ -29,5 +29,7 @@ urlpatterns = [
     path('pndtnotifications/', views.PNDTLicenseViewerNotificationView.as_view()),
     path('licensenotifications/', views.LicenseViewerNotificationView.as_view()),
     path('tenderstatus/', views.TenderStatusView.as_view()),
+    path('tenderlist/', views.ListTenderView.as_view()),
+    path('updatetender/',views.UpdateTenderView.as_view()),
 
 ]
