@@ -767,6 +767,7 @@ class VerifyOTPView(APIView):
         except Profile.DoesNotExist:
             # If the user does not exist, return an error
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
 class ListTenderView(APIView):
     def get(self,request):
         EMD_payment_status=request.GET.get("EMD_payment_status")
