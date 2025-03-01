@@ -12,6 +12,13 @@ from datetime import datetime, timedelta
 from .models import PlayerId
 from datetime import datetime
 
+
+
+from rest_framework.permissions import AllowAny
+from django.core.mail import send_mail
+from django.contrib.auth.hashers import make_password
+from .models import Profile, OTPVerification
+
 import random
 import string
 
@@ -366,7 +373,7 @@ class LicenseListView(APIView):
         serializer = LicenseDetailsSerializers(license_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-
+from django.utils import timezone
 class UpdateLicenseView(APIView):
     def patch(self,request):
         license_id= request.data.get('id')
@@ -399,14 +406,30 @@ class UpdateLicenseView(APIView):
     
 
 class SendNotificationView(APIView):
-    def post(self,request):
-        data=request.data
-        serializer=NotificationsDetailsSerializers(data=data)
+    def post(self, request):
+        data = request.data
+        
+        # Ensure the profile ID is provided in the request
+        profile_id = data.get('profile')
+        if not profile_id:
+            return Response({"msg": "Profile ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the profile exists
+        try:
+            profile = Profile.objects.get(id=profile_id)
+        except Profile.DoesNotExist:
+            return Response({"msg": "Profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Add the profile instance to the data
+        data['profile'] = profile.id
+        
+        # Serialize and save the notification
+        serializer = NotificationsDetailsSerializers(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"msg":"added successfully"}, status=status.HTTP_200_OK)
+            return Response({"msg": "added successfully"}, status=status.HTTP_200_OK)
         else:
-            return Response({"msg":"failed to add","error":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "failed to add", "error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class ViewNotificationView(APIView):
     def get(self,request):
@@ -676,3 +699,71 @@ class TenderStatusView(APIView):
                 "rejected_count": len(rejected_tenders),
                 "pending_count": len(pending_tenders)
             }, status=status.HTTP_200_OK) 
+
+
+from .tasks import check_expiring_licenses
+
+
+check_expiring_licenses(schedule=1)
+
+
+
+
+# API to request OTP for password reset
+class RequestOTPView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        try:
+            # Fetch the user by email
+            user = Profile.objects.get(email=email)
+            # Generate a 6-digit OTP
+            otp = str(random.randint(100000, 999999))
+            # Create an OTP entry for the user
+            OTPVerification.objects.create(user=user, otp=otp)
+
+            # Send the OTP via email
+            send_mail(
+                "Password Reset OTP",
+                f"Your OTP is: {otp}",
+                "trackinn69@gmail.com",  # Replace with your email
+                [email],
+                fail_silently=False,
+            )
+
+            return Response({"message": "OTP sent to your email"}, status=status.HTTP_200_OK)
+
+        except Profile.DoesNotExist:
+            return Response({"error": "User with this email not found"}, status=status.HTTP_404_NOT_FOUND)
+
+# API to verify OTP and reset password
+class VerifyOTPView(APIView):
+    permission_classes = [AllowAny]  # Allow any user to access this view
+
+    def post(self, request):
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+        new_password = request.data.get("new_password")
+
+        try:
+            # Fetch the user by email
+            user = Profile.objects.get(email=email)
+            # Fetch the OTP entry for the user
+            otp_entry = OTPVerification.objects.filter(user=user, otp=otp).first()
+
+            # Check if the OTP entry exists and is valid
+            if otp_entry and otp_entry.is_valid():
+                # Set the new password for the user
+                user.set_password(new_password)
+                # Update the password_str field with the new password (plain text or hashed)
+                user.password_str = new_password  # Or use `make_password(new_password)` for hashing
+                user.save()
+                # Delete the OTP entry after successful verification
+                otp_entry.delete()
+                return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
+            else:
+                # If OTP is invalid or expired, return an error
+                return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Profile.DoesNotExist:
+            # If the user does not exist, return an error
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)

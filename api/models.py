@@ -97,6 +97,7 @@ class License(models.Model):
     shelf_life=models.TextField(null=True,blank=True)
     pack_size=models.IntegerField(default=0)
     attachments=models.FileField(null=True,blank=True)
+    viewed_date=models.DateTimeField(null=True,blank=True)
 
     def __str__(self):
         return self.product_name
@@ -212,3 +213,26 @@ class PlayerId(models.Model):
 
     def __str__(self):
         return self.player_id
+    
+class RecentlyViewed(models.Model):
+    profile=models.ForeignKey(Profile,on_delete=models.CASCADE,null=True,blank=True)
+    licen=models.ForeignKey(License,on_delete=models.CASCADE,null=True,blank=True)
+    viewed_date=models.DateTimeField(null=True,blank=True)
+
+
+
+from django.db import models
+from django.utils.timezone import now  # Import the `now` function
+from .models import Profile  # Import the Profile model
+
+class OTPVerification(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(default=now)  # Use the imported `now` function
+
+    def is_valid(self):
+        # Check if the OTP is valid (created within the last 300 seconds)
+        return (now() - self.created_at).seconds < 300
+
+    def __str__(self):
+        return f"OTP for {self.user.email}"
