@@ -700,7 +700,6 @@ class TenderStatusView(APIView):
                 "pending_count": len(pending_tenders)
             }, status=status.HTTP_200_OK) 
 
-<<<<<<< HEAD
 
 from .tasks import check_expiring_licenses
 
@@ -768,7 +767,6 @@ class VerifyOTPView(APIView):
         except Profile.DoesNotExist:
             # If the user does not exist, return an error
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-=======
 class ListTenderView(APIView):
     def get(self,request):
         EMD_payment_status=request.GET.get("EMD_payment_status")
@@ -824,4 +822,3 @@ class UpdateTenderView(APIView):
         
         tender_obj.delete()
         return Response({"msg": "Deleted successfully"}, status=status.HTTP_200_OK)
->>>>>>> 2755cfc268d797568fc6830b8c4ac7a3d41f8f86
