@@ -135,8 +135,6 @@ class TenderManager(models.Model):
     forfeiture_reason=models.TextField(null=True,blank=True)
     EMD_refund_status=models.BooleanField()
     EMD_refund_date=models.DateField(null=True,blank=True)
-    bid_amount=models.CharField(max_length=100)
-    bid_outcome=models.BooleanField()
 
     def __str__(self):
         return self.tender_title

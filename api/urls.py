@@ -36,4 +36,5 @@ urlpatterns = [
     path('request-otp/', RequestOTPView.as_view(), name='request-otp'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
 
+    path('totalemdamount/', views.TotalEMDAmountView.as_view(), name='totalemdamount'),
 ]

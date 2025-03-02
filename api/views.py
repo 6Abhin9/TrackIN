@@ -13,7 +13,9 @@ from .models import PlayerId
 from datetime import datetime
 
 
-
+from django.http import JsonResponse
+from django.views import View
+from django.db.models import Sum, Q, Count
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
@@ -823,3 +825,26 @@ class UpdateTenderView(APIView):
         
         tender_obj.delete()
         return Response({"msg": "Deleted successfully"}, status=status.HTTP_200_OK)
+
+
+
+class TotalEMDAmountView(View):
+    def get(self, request, *args, **kwargs):
+        # Calculate the total EMD amount
+        total_emd = TenderManager.objects.aggregate(total_emd_amount=Sum('EMD_amount'))['total_emd_amount'] or 0
+
+        # Calculate the total pending EMD amount
+        total_pending_emd = TenderManager.objects.filter(EMD_refund_status=False).aggregate(total_pending_emd_amount=Sum('EMD_amount'))['total_pending_emd_amount'] or 0
+
+        # Calculate the total number of tenders
+        total_tenders = TenderManager.objects.count()
+
+        # Prepare the response data
+        response_data = {
+            'total_emd_amount': total_emd,
+            'total_pending_emd_amount': total_pending_emd,
+            'total_tenders': total_tenders,
+        }
+
+        # Return the response as JSON
+        return JsonResponse(response_data)
