@@ -954,3 +954,26 @@ class RecentlyViewedView(APIView):
             "recently_viewed_pndt_licenses": [license.application_number for license in recently_viewed_pndt_licenses]
         }, status=status.HTTP_200_OK)
 
+
+
+from django.utils.timezone import now
+from datetime import timedelta
+from rest_framework.views import APIView
+from rest_framework import status
+from .models import License
+
+class LicenseStatisticsView(APIView):
+    def get(self, request):
+        today = now().date()
+        
+        total_licenses = License.objects.count()
+        expiring_soon = License.objects.filter(expiry_date__range=[today + timedelta(days=1), today + timedelta(days=30)]).count()
+        expired_licenses = License.objects.filter(expiry_date__lte=today).count()
+        active_licenses = License.objects.filter(expiry_date__gt=today).count()
+        
+        return Response({
+            "total_licenses": total_licenses,
+            "expiring_soon": expiring_soon,
+            "expired_licenses": expired_licenses,
+            "active_licenses": active_licenses
+        }, status=status.HTTP_200_OK)

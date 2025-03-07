@@ -43,5 +43,6 @@ urlpatterns = [
     path('countusers/',views.CountUsersView.as_view()),
     path('recentlyadded/', views.RecentlyAddedView.as_view()),
     path('recentlyviewed/', views.RecentlyViewedView.as_view()),
+    path('licenseoverview/', views.LicenseStatisticsView.as_view())
 
 ]
