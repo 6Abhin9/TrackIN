@@ -11,6 +11,7 @@ from .serializers import PNDTLicenseSerializers
 from datetime import datetime, timedelta
 from .models import PlayerId
 from datetime import datetime
+from django.utils.timezone import now
 
 
 from django.http import JsonResponse
@@ -413,28 +414,51 @@ class UpdateLicenseView(APIView):
 class SendNotificationView(APIView):
     def post(self, request):
         data = request.data
+        sender_profile_id = data.get('profile')
+        title = data.get('title')
+        content = data.get('content')
         
-        # Ensure the profile ID is provided in the request
-        profile_id = data.get('profile')
-        if not profile_id:
+        if not sender_profile_id:
             return Response({"msg": "Profile ID is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Check if the profile exists
         try:
-            profile = Profile.objects.get(id=profile_id)
+            sender_profile = Profile.objects.get(id=sender_profile_id)
         except Profile.DoesNotExist:
             return Response({"msg": "Profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-        # Add the profile instance to the data
-        data['profile'] = profile.id
+        if not title or not content:
+            return Response({"msg": "Title and content are required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Serialize and save the notification
-        serializer = NotificationsDetailsSerializers(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"msg": "added successfully"}, status=status.HTTP_200_OK)
+        # Determine recipients based on sender role
+        if sender_profile.role == 'admin':
+            recipients = Profile.objects.exclude(role='admin')
+        elif sender_profile.role == 'tender_manager':
+            recipients = Profile.objects.filter(role='tender_viewer')
+        elif sender_profile.role == 'license_manager':
+            recipients = Profile.objects.filter(role__in=['internal_license_viewer', 'external_license_viewer'])
+        elif sender_profile.role == 'pndt_license_manager':
+            recipients = Profile.objects.filter(role='pndt_license_viewer')
         else:
-            return Response({"msg": "failed to add", "error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "Unauthorized to send notifications"}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Send notification to all recipients
+        notifications = []
+        for recipient in recipients:
+            notification = Notification.objects.create(
+                profile=recipient,
+                title=title,
+                content=content,
+                time=now()
+            )
+            notifications.append({
+                "profile": recipient.id,
+                "title": notification.title,
+                "content": notification.content,
+                "time": notification.time
+            })
+        
+        return Response({"msg": "Notifications sent successfully", "notifications": notifications}, status=status.HTTP_200_OK)
+
         
 class FeedbackView(APIView):
     def post(self, request, *args, **kwargs):
