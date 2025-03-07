@@ -982,8 +982,6 @@ class RecentlyViewedView(APIView):
 
 from django.utils.timezone import now
 from datetime import timedelta
-from rest_framework.views import APIView
-from rest_framework import status
 from .models import License
 
 class LicenseStatisticsView(APIView):
