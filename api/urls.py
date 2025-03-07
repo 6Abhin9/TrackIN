@@ -40,4 +40,8 @@ urlpatterns = [
 
     path('feedback/', FeedbackView.as_view(), name='feedback'),
     path('totalemdamount/', views.TotalEMDAmountView.as_view(), name='totalemdamount'),
+    path('countusers/',views.CountUsersView.as_view()),
+    path('recentlyadded/', views.RecentlyAddedView.as_view()),
+    path('recentlyviewed/', views.RecentlyViewedView.as_view()),
+
 ]

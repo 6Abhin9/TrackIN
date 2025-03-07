@@ -670,7 +670,6 @@ class TenderStatusView(APIView):
                     "tender_title": tender.tender_title,
                     "issuing_authority": tender.issuing_authority,
                     "EMD_amount": tender.EMD_amount,
-                    "bid_amount": tender.bid_amount,
                     "EMD_refund_date": tender.EMD_refund_date,
                     "tender_status": tender_status
                 })
@@ -681,7 +680,6 @@ class TenderStatusView(APIView):
                     "tender_title": tender.tender_title,
                     "issuing_authority": tender.issuing_authority,
                     "EMD_amount": tender.EMD_amount,
-                    "bid_amount": tender.bid_amount,
                     "EMD_refund_date": tender.EMD_refund_date,
                     "tender_status": tender_status
                 })
@@ -692,7 +690,6 @@ class TenderStatusView(APIView):
                     "tender_title": tender.tender_title,
                     "issuing_authority": tender.issuing_authority,
                     "EMD_amount": tender.EMD_amount,
-                    "bid_amount": tender.bid_amount,
                     "EMD_refund_date": tender.EMD_refund_date,
                     "tender_status": tender_status
                 })
@@ -918,3 +915,39 @@ class TotalEMDAmountView(View):
 
         # Return the response as JSON
         return JsonResponse(response_data)
+    
+class CountUsersView(APIView):
+    def get(self, request):
+        user_count = Profile.objects.exclude(role='admin').count()
+        total_licenses = License.objects.count()
+        total_pndt_licenses = PNDT_License.objects.count()
+        total_tenders = TenderManager.objects.count()
+        
+        return Response({
+            "total_users": user_count,
+            "total_licenses": total_licenses,
+            "total_pndt_licenses": total_pndt_licenses,
+            "total_tenders": total_tenders
+        }, status=status.HTTP_200_OK)
+
+
+class RecentlyAddedView(APIView):
+    def get(self, request):
+        recent_licenses = License.objects.order_by('-date_of_submission')[:5]
+        recent_pndt_licenses = PNDT_License.objects.order_by('-submission_date')[:5]
+        
+        return Response({
+            "recent_licenses": [license.application_number for license in recent_licenses],
+            "recent_pndt_licenses": [license.application_number for license in recent_pndt_licenses]
+        }, status=status.HTTP_200_OK)
+
+class RecentlyViewedView(APIView):
+    def get(self, request):
+        recently_viewed_licenses = License.objects.order_by('-viewed_date')[:5]
+        recently_viewed_pndt_licenses = PNDT_License.objects.order_by('-submission_date')[:5]
+        
+        return Response({
+            "recently_viewed_licenses": [license.application_number for license in recently_viewed_licenses],
+            "recently_viewed_pndt_licenses": [license.application_number for license in recently_viewed_pndt_licenses]
+        }, status=status.HTTP_200_OK)
+
