@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .serializers import RegistrationSerializers
+from .serializers import FeedbackSerializer, RegistrationSerializers
 from .models import Registration
 from django.shortcuts import get_object_or_404
 from .models import Profile,License,AdditionalDetails,Notification,TenderManager,PNDT_License,PersonalDetails
@@ -432,6 +432,14 @@ class SendNotificationView(APIView):
             return Response({"msg": "added successfully"}, status=status.HTTP_200_OK)
         else:
             return Response({"msg": "failed to add", "error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+class FeedbackView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = FeedbackSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ViewNotificationView(APIView):
     def get(self,request):
@@ -769,6 +777,68 @@ class VerifyOTPView(APIView):
         except Profile.DoesNotExist:
             # If the user does not exist, return an error
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class ResetPasswordView(APIView):
+    permission_classes = [AllowAny]  # Allow any user to access this view
+
+    def post(self, request):
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+        new_password = request.data.get("new_password")
+
+        # Debugging: Print the incoming request data
+        print(f"Incoming Request Data: {request.data}")
+        print(f"Email: {email}")
+        print(f"OTP: {otp}")
+        print(f"New Password: {new_password}")
+
+        # Validate required fields
+        if not email or not otp or not new_password:
+            return Response(
+                {"error": "Email, OTP, and new_password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Fetch the user by email
+            user = Profile.objects.get(email=email)
+            print(f"User Found: {user}")
+
+            # Fetch the OTP entry for the user
+            otp_entry = OTPVerification.objects.filter(user=user, otp=otp).first()
+            print(f"OTP Entry: {otp_entry}")
+
+            # Check if the OTP entry exists and is valid
+            if otp_entry and otp_entry.is_valid():
+                # Set the new password for the user
+                user.set_password(new_password)  # Hashes and saves the password
+                # Update the password_str field with the new password (plain text)
+                user.password_str = new_password
+                user.save()  # Save the user object
+                print("Password updated successfully")
+
+                # Delete the OTP entry after successful verification
+                otp_entry.delete()
+                return Response(
+                    {"message": "Password reset successful"}, status=status.HTTP_200_OK
+                )
+            else:
+                # If OTP is invalid or expired, return an error
+                return Response(
+                    {"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Profile.DoesNotExist:
+            # If the user does not exist, return an error
+            print("User not found")
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Handle any unexpected errors
+            print(f"Unexpected error: {e}")
+            return Response(
+                {"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
 class ListTenderView(APIView):
     def get(self,request):

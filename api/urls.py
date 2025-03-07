@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import RequestOTPView, VerifyOTPView
+from .views import FeedbackView, RequestOTPView, ResetPasswordView, VerifyOTPView
 urlpatterns = [
     path('addusers/',views.AdminAddUsersApi.as_view()),
     path('addpersonaldetails/',views.AddPersonalDetailsApi.as_view()), #for testing only no need to connect
@@ -35,6 +35,9 @@ urlpatterns = [
 
     path('request-otp/', RequestOTPView.as_view(), name='request-otp'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
+    
+    path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
 
+    path('feedback/', FeedbackView.as_view(), name='feedback'),
     path('totalemdamount/', views.TotalEMDAmountView.as_view(), name='totalemdamount'),
 ]

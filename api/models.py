@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from django.utils import timezone
 
 class Registration(models.Model):
     name=models.CharField(max_length=100,null=True,blank=True)
@@ -113,6 +113,14 @@ class Notification(models.Model):
     def __str__(self):
         return self.title
 
+class Feedback(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Feedback from {self.name} ({self.email})"
 
 
 class TenderManager(models.Model):
