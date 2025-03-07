@@ -120,9 +120,9 @@ class AdminAddUsersApi(APIView):
             )
             user.password_str = password
             user.save()
-
+            state='';
             # Check if any AdditionalDetails fields are provided
-            if any([state, district, pincode, phone, bio]):
+            if True:
                 # Create the AdditionalDetails record linked to the Profile
                 AdditionalDetails.objects.create(
                     profile=user,
@@ -131,7 +131,10 @@ class AdminAddUsersApi(APIView):
                     pincode=pincode,
                     phone=phone,
                     bio=bio
+
+
                 )
+                PersonalDetails.objects.create(profile=user)
 
             return Response({"msg": "User added successfully"}, status=status.HTTP_200_OK)
 
