@@ -32,12 +32,10 @@ urlpatterns = [
     path('tenderstatus/', views.TenderStatusView.as_view()),
     path('tenderlist/', views.ListTenderView.as_view()),
     path('updatetender/',views.UpdateTenderView.as_view()),
+    path('resetpassword/', views.ResetPasswordView.as_view()),
 
     path('request-otp/', RequestOTPView.as_view(), name='request-otp'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
-    
-    path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
-
     path('feedback/', FeedbackView.as_view(), name='feedback'),
     path('totalemdamount/', views.TotalEMDAmountView.as_view(), name='totalemdamount'),
     path('countusers/',views.CountUsersView.as_view()),

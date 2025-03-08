@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Registration
+from .models import Feedback, Registration, RecentlyViewed
 from .models import Profile, AdditionalDetails,License,Notification,TenderManager,PNDT_License,PersonalDetails,OTPVerification
 
 admin.site.register(Registration)
@@ -11,3 +11,5 @@ admin.site.register(TenderManager)
 admin.site.register(PNDT_License)
 admin.site.register(PersonalDetails)
 admin.site.register(OTPVerification)
+admin.site.register(Feedback)
+admin.site.register(RecentlyViewed)

@@ -12,7 +12,7 @@ ONESIGNAL_APP_ID = os.getenv('ONESIGNAL_APP_ID', '')
 ONESIGNAL_API_KEY = os.getenv('ONESIGNAL_API_KEY', '')
 
 
-@background(schedule=1)  # Runs in the background
+@background(schedule=60)  # Runs in the background
 def check_expiring_licenses():
     """Checks for expiring licenses and notifies License Managers and users."""
     print('Checking for expiring licenses...')
@@ -51,9 +51,12 @@ def check_expiring_licenses():
                 # Send push notification to users
                 users = PlayerId.objects.all()  
                 user_ids = users.values_list('player_id', flat=True)
+                print(user_ids)
 
+                send_push_notification(user_ids, licen.license_number, days_left)
                 if user_ids:
-                    send_push_notification(user_ids, licen.license_number, days_left)
+                    print('hiii');
+                    
 
     if notifications:
         print("Expiring Licenses:", notifications)
@@ -65,7 +68,7 @@ def send_push_notification(user_ids, license_name, days_left):
     """Send push notifications using OneSignal."""
     try:
         payload = {
-            "app_id": ONESIGNAL_APP_ID,
+            "app_id": '18d9ac09-3b59-4855-8873-64ccfb81b69a',
             "contents": {"en": f"License '{license_name}' is expiring in {days_left} days!"},
             "included_segments": ["All"],
             "data": {"extra_data": f"License '{license_name}' is expiring soon!"},
@@ -76,7 +79,7 @@ def send_push_notification(user_ids, license_name, days_left):
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Basic {ONESIGNAL_API_KEY}",
+            "Authorization": f"Basic os_v2_app_ddm2ycj3lfeflcdtmtgpxanwtlv2l6fh3asuckfi3nddev3zrevpvljxke6n56geebhmz4cvtqwxc3tkfffl5a7xamfpr4xo6jxvdui",
         }
         response = requests.post(
             "https://onesignal.com/api/v1/notifications",
