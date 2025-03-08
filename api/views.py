@@ -451,54 +451,82 @@ class UpdateLicenseView(APIView):
         return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
     
 
+import logging
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils.timezone import now
+from .models import Profile, Notification
+
+logger = logging.getLogger(__name__)
+
 class SendNotificationView(APIView):
     def post(self, request):
         data = request.data
-        sender_profile_id = data.get('profile')
+        sender_profile_id = data.get('profile')  # Sender's profile ID
         title = data.get('title')
         content = data.get('content')
-        
+
+        logger.info(f"Received request: {data}")
+
         if not sender_profile_id:
             return Response({"msg": "Profile ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             sender_profile = Profile.objects.get(id=sender_profile_id)
         except Profile.DoesNotExist:
             return Response({"msg": "Profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         if not title or not content:
             return Response({"msg": "Title and content are required"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+        # Log the sender's role
+        logger.info(f"Sender's role: {sender_profile.role}")
+
         # Determine recipients based on sender role
         if sender_profile.role == 'admin':
-            recipients = Profile.objects.exclude(role='admin')
-        elif sender_profile.role == 'tender_manager':
-            recipients = Profile.objects.filter(role='tender_viewer')
+            # Admin can send notifications to all users
+            recipients = Profile.objects.all()
         elif sender_profile.role == 'license_manager':
+            # Send to internal and external license viewers
             recipients = Profile.objects.filter(role__in=['internal_license_viewer', 'external_license_viewer'])
+        elif sender_profile.role == 'tender_manager':
+            # Send to tender viewers
+            recipients = Profile.objects.filter(role='tender_viewer')
         elif sender_profile.role == 'pndt_license_manager':
+            # Send to PNDT license viewers
             recipients = Profile.objects.filter(role='pndt_license_viewer')
         else:
+            # Unauthorized roles
             return Response({"msg": "Unauthorized to send notifications"}, status=status.HTTP_403_FORBIDDEN)
-        
+
+        # Log the recipients
+        logger.info(f"Recipients: {recipients}")
+
         # Send notification to all recipients
         notifications = []
         for recipient in recipients:
-            notification = Notification.objects.create(
-                profile=recipient,
-                title=title,
-                content=content,
-                time=now()
-            )
-            notifications.append({
-                "profile": recipient.id,
-                "title": notification.title,
-                "content": notification.content,
-                "time": notification.time
-            })
-        
-        return Response({"msg": "Notifications sent successfully", "notifications": notifications}, status=status.HTTP_200_OK)
+            try:
+                notification = Notification.objects.create(
+                    profile=recipient,
+                    title=title,
+                    content=content,
+                    time=now()
+                )
+                logger.info(f"Notification created: {notification}")
+                notifications.append({
+                    "profile": recipient.id,
+                    "title": notification.title,
+                    "content": notification.content,
+                    "time": notification.time
+                })
+            except Exception as e:
+                logger.error(f"Failed to create notification for recipient {recipient.id}: {e}")
 
+        return Response({
+            "msg": "Notifications sent successfully",
+            "notifications": notifications
+        }, status=status.HTTP_200_OK)
         
 class FeedbackView(APIView):
     def post(self, request, *args, **kwargs):
@@ -780,9 +808,6 @@ from .tasks import check_expiring_licenses
 
 check_expiring_licenses(schedule=1)
 
-
-
-
 # API to request OTP for password reset
 class RequestOTPView(APIView):
     def post(self, request):
@@ -829,7 +854,7 @@ class VerifyOTPView(APIView):
                 # Set the new password for the user
                 user.set_password(new_password)
                 # Update the password_str field with the new password (plain text or hashed)
-                user.password_str = new_password  # Or use `make_password(new_password)` for hashing
+                user.password_str = new_password  # Or use make_password(new_password) for hashing
                 user.save()
                 # Delete the OTP entry after successful verification
                 otp_entry.delete()
@@ -1000,12 +1025,41 @@ class CountUsersView(APIView):
 
 class RecentlyAddedView(APIView):
     def get(self, request):
-        recent_licenses = License.objects.order_by('-date_of_submission')[:5]
-        recent_pndt_licenses = PNDT_License.objects.order_by('-submission_date')[:5]
+        filter_type = request.query_params.get('filter', 'all')
         
+        now = timezone.now()
+        
+        if filter_type == 'this_week':
+            start_date = now - timedelta(days=now.weekday())
+            recent_licenses = License.objects.filter(date_of_submission__gte=start_date).order_by('-date_of_submission')[:5]
+            recent_pndt_licenses = PNDT_License.objects.filter(submission_date__gte=start_date).order_by('-submission_date')[:5]
+        elif filter_type == 'this_month':
+            start_date = now.replace(day=1)
+            recent_licenses = License.objects.filter(date_of_submission__gte=start_date).order_by('-date_of_submission')[:5]
+            recent_pndt_licenses = PNDT_License.objects.filter(submission_date__gte=start_date).order_by('-submission_date')[:5]
+        elif filter_type == 'this_year':
+            start_date = now.replace(month=1, day=1)
+            recent_licenses = License.objects.filter(date_of_submission__gte=start_date).order_by('-date_of_submission')[:5]
+            recent_pndt_licenses = PNDT_License.objects.filter(submission_date__gte=start_date).order_by('-submission_date')[:5]
+        elif filter_type == 'last_year':
+            start_date = now.replace(year=now.year - 1, month=1, day=1)
+            end_date = now.replace(year=now.year - 1, month=12, day=31)
+            recent_licenses = License.objects.filter(date_of_submission__gte=start_date, date_of_submission__lte=end_date).order_by('-date_of_submission')[:5]
+            recent_pndt_licenses = PNDT_License.objects.filter(submission_date__gte=start_date, submission_date__lte=end_date).order_by('-submission_date')[:5]
+        else:
+            recent_licenses = License.objects.order_by('-date_of_submission')[:5]
+            recent_pndt_licenses = PNDT_License.objects.order_by('-submission_date')[:5]
+        
+        # Include product_name in the response
         return Response({
-            "recent_licenses": [license.application_number for license in recent_licenses],
-            "recent_pndt_licenses": [license.application_number for license in recent_pndt_licenses]
+            "recent_licenses": [
+                {"application_number": license.application_number, "product_name": license.product_name}
+                for license in recent_licenses
+            ],
+            "recent_pndt_licenses": [
+                {"application_number": pndt_license.application_number, "product_name": pndt_license.product_name}
+                for pndt_license in recent_pndt_licenses
+            ]
         }, status=status.HTTP_200_OK)
 
 class RecentlyViewedView(APIView):
@@ -1013,11 +1067,17 @@ class RecentlyViewedView(APIView):
         recently_viewed_licenses = License.objects.order_by('-viewed_date')[:5]
         recently_viewed_pndt_licenses = PNDT_License.objects.order_by('-submission_date')[:5]
         
+        # Include product_name in the response
         return Response({
-            "recently_viewed_licenses": [license.application_number for license in recently_viewed_licenses],
-            "recently_viewed_pndt_licenses": [license.application_number for license in recently_viewed_pndt_licenses]
+            "recently_viewed_licenses": [
+                {"application_number": license.application_number, "product_name": license.product_name}
+                for license in recently_viewed_licenses
+            ],
+            "recently_viewed_pndt_licenses": [
+                {"application_number": pndt_license.application_number, "product_name": pndt_license.product_name}
+                for pndt_license in recently_viewed_pndt_licenses
+            ]
         }, status=status.HTTP_200_OK)
-
 
 
 from django.utils.timezone import now

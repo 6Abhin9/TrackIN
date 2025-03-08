@@ -1,9 +1,6 @@
 from django.contrib import admin
-from django.contrib import admin
-from .models import (
-    Registration, Profile, AdditionalDetails, License, Notification, 
-    TenderManager, PNDT_License, PersonalDetails, OTPVerification
-)
+from .models import Feedback, Registration, RecentlyViewed
+from .models import Profile, AdditionalDetails,License,Notification,TenderManager,PNDT_License,PersonalDetails,OTPVerification
 
 
 class ProfileAdmin(admin.ModelAdmin):
