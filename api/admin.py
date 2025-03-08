@@ -36,3 +36,6 @@ admin.site.register(TenderManager)
 admin.site.register(PNDT_License)
 admin.site.register(PersonalDetails)
 admin.site.register(OTPVerification)
+admin.site.register(RecentlyViewed)
+admin.site.register(Feedback)
+
