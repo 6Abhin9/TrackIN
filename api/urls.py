@@ -43,6 +43,9 @@ urlpatterns = [
     path('countusers/',views.CountUsersView.as_view()),
     path('recentlyadded/', views.RecentlyAddedView.as_view()),
     path('recentlyviewed/', views.RecentlyViewedView.as_view()),
-    path('licenseoverview/', views.LicenseStatisticsView.as_view())
+    path('licenseoverview/', views.LicenseStatisticsView.as_view()),
+
+    path('register-external-user/', views.ExternalUserRegistrationView.as_view(), name='register-external-user'),
+    path('approve-external-user/<int:profile_id>/', views.ApproveExternalUserView.as_view(), name='approve-external-user'),
 
 ]

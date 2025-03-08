@@ -12,29 +12,36 @@ class Registration(models.Model):
         return self.name
 
 class Profile(AbstractUser):
-    REQUIRED_FIELDS=['username']
-    USERNAME_FIELD='email'
+    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'email'
+
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('license_manager', 'License Manager'),
         ('tender_manager', 'Tender Manager'),
         ('pndt_license_manager', 'PNDT License Manager'),
-        ('internal_license_viewer','Internal License Viewer'),
-        ('external_license_viewer','External License Viewer'),
-        ('tender_viewer','Tender Viewer'),
-        ('pndt_license_viewer','PNDT License Viewer'),
+        ('internal_license_viewer', 'Internal License Viewer'),
+        ('external_license_viewer', 'External License Viewer'),
+        ('tender_viewer', 'Tender Viewer'),
+        ('pndt_license_viewer', 'PNDT License Viewer'),
     ]
 
-
-    username=models.CharField(max_length=100,null=True,blank=True)
-    email=models.EmailField(unique=True)
-    password_str=models.CharField(max_length=255,null=True,blank=True)
+    username = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(unique=True)
+    password_str = models.CharField(max_length=255, null=True, blank=True)
     role = models.CharField(max_length=30, choices=ROLE_CHOICES)
-    
-    
-    
+    authority = models.CharField(max_length=255, null=True, blank=True)
+    is_approved = models.BooleanField(default=False)  # Approval required only for external users
+
     def __str__(self):
         return self.email
+
+    # Ensure only external users require approval
+    @property
+    def is_active(self):
+        if self.role == "external_license_viewer":
+            return self.is_approved
+        return True
     
 class PersonalDetails(models.Model):
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='personal_details')

@@ -7,13 +7,11 @@ from django.shortcuts import get_object_or_404
 from .models import Profile,License,AdditionalDetails,Notification,TenderManager,PNDT_License,PersonalDetails
 from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,AdditionalDetailsGetSerializer,NotificationsDetailsSerializers,PersonalDetailsSerializers
 from .serializers import TenderDetailsSerializers
-from .serializers import PNDTLicenseSerializers
+from .serializers import PNDTLicenseSerializers,ProfileSerializers
 from datetime import datetime, timedelta
 from .models import PlayerId
 from datetime import datetime
 from django.utils.timezone import now
-
-
 from django.http import JsonResponse
 from django.views import View
 from django.db.models import Sum, Q, Count
@@ -28,6 +26,10 @@ import string
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken 
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import check_password, make_password
+from rest_framework.permissions import IsAdminUser
+
+
 
 class LoginAPIView(APIView):
     def post(self, request):
@@ -321,7 +323,7 @@ class ChangeAddressApi(APIView):
             return Response({"msg": "Additional details not found for this profile"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 class ChangePasswordApi(APIView):
     def get(self,request):
         data=request.data
@@ -340,7 +342,45 @@ class ChangePasswordApi(APIView):
             return Response({"msg": "editted successfully"},status=status.HTTP_200_OK)
         else:
             return Response({"msg":"the passwords do not match"},status=status.HTTP_400_BAD_REQUEST)
-        
+  
+
+class ExternalUserRegistrationView(APIView):
+    def post(self, request):
+        data = request.data.copy()  #Create a mutable copy of request data
+        email = data.get('email')
+
+        # Check if email already exists
+        if Profile.objects.filter(email=email).exists():
+            return Response({"msg": "Email is already registered"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Assign external user role manually
+        data['role'] = 'external_license_viewer'
+        data['is_approved'] = False  # External users must be approved
+        data['password_str'] = make_password(data.get('password'))  # Hash password
+
+        serializer = ProfileSerializers(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg": "Registration successful. Awaiting admin approval."}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"msg": "Invalid data", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ApproveExternalUserView(APIView):
+    permission_classes = [IsAdminUser]  #Ensures only admins can access
+
+    def patch(self, request, user_id):
+        user = get_object_or_404(Profile, id=user_id, role='external_license_viewer')
+
+        if user.is_approved:
+            return Response({"msg": "User is already approved."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.is_approved = True
+        user.save()
+
+        return Response({"msg": f"User {user.email} approved successfully."}, status=status.HTTP_200_OK)
+
+
 
 class AddLicense(APIView):
     def post(self,request):
