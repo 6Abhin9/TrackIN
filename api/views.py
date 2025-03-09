@@ -528,13 +528,6 @@ class SendNotificationView(APIView):
             "notifications": notifications
         }, status=status.HTTP_200_OK)
         
-class FeedbackView(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = FeedbackSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ViewNotificationView(APIView):
     def get(self,request):
@@ -578,7 +571,35 @@ class UpdateNotificationView(APIView):
         notification.delete()
         return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
 
+class TenderViewerNotificationView(APIView):
+    def get(self, request):
+        role = request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role=role)
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class PNDTLicenseViewerNotificationView(APIView):
+    def get(self, request):
+        role = request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role=role)
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class LicenseViewerNotificationView(APIView):
+    def get(self, request):
+        role = request.GET.get("role")
+        notification_list = Notification.objects.filter(profile__role=role)
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class FeedbackView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = FeedbackSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AddTenderDetailsView(APIView):
     def post(self,request):
@@ -724,29 +745,6 @@ class DownloadExcelReport(APIView):
 
         return report_as_excel(title, headers, data, file_name)
     
-
-
-class TenderViewerNotificationView(APIView):
-    def get(self,request):
-        role=request.GET.get("role")
-        notification_list = Notification.objects.filter(profile__role__in=['tender_manager','admin'])
-        serializer = NotificationsDetailsSerializers(notification_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-class PNDTLicenseViewerNotificationView(APIView):
-    def get(self,request):
-        role=request.GET.get("role")
-        notification_list = Notification.objects.filter(profile__role__in=['pndt_license_manager','admin'])
-        serializer = NotificationsDetailsSerializers(notification_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-class LicenseViewerNotificationView(APIView):
-    def get(self,request):
-        role=request.GET.get("role")
-        notification_list = Notification.objects.filter(profile__role__in=['license_manager','admin'])
-        serializer = NotificationsDetailsSerializers(notification_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class TenderStatusView(APIView):
     def get(self, request):
