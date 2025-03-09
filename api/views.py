@@ -28,6 +28,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 
 
 
@@ -530,13 +531,46 @@ class SendNotificationView(APIView):
         
 
 class ViewNotificationView(APIView):
-    def get(self,request):
-        role=request.GET.get("role")
-        notification_list=Notification.objects.all()
-        if role:
-            notification_list = notification_list.filter(profile__role=role)
+    permission_classes = [IsAuthenticated]  # Ensure user is logged in
+
+    def get(self, request):
+        user = request.user  # Get the authenticated user
+        user_role = user.role  # Fetch the user's role
+
+        # Admin can view all notifications
+        if user_role == "admin":
+            notification_list = Notification.objects.all()
+
+        # License Manager can view only notifications for License Viewers
+        elif user_role == "license_manager":
+            notification_list = Notification.objects.filter(profile__role__in=['internal_license_viewer', 'external_license_viewer', 'admin'])
+
+        # Tender Manager can view only notifications for Tender Viewers
+        elif user_role == "tender_manager":
+            notification_list = Notification.objects.filter(profile__role__in=['tender_viewer', 'admin'])
+
+        # PNDT Manager can view only notifications for PNDT Viewers
+        elif user_role == "pndt_license_manager":
+            notification_list = Notification.objects.filter(profile__role__in=['pndt_license_viewer', 'admin'])
+
+        # License Viewers can view only their own notifications
+        elif user_role in ['internal_license_viewer', 'external_license_viewer']:
+            notification_list = Notification.objects.filter(profile=user)
+
+        # Tender Viewers can view only their own notifications
+        elif user_role == "tender_viewer":
+            notification_list = Notification.objects.filter(profile=user)
+
+        # PNDT License Viewers can view only their own notifications
+        elif user_role == "pndt_license_viewer":
+            notification_list = Notification.objects.filter(profile=user)
+
+        else:
+            return Response({"msg": "Unauthorized access"}, status=403)
+
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=200)
+
 
 class UpdateNotificationView(APIView):
     def patch(self,request):
