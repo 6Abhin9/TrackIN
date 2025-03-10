@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
-from .views import FeedbackView, RequestOTPView, ResetPasswordView, VerifyOTPView
+from .views import AppliedTenderList, FeedbackView, RequestOTPView, ResetPasswordView, VerifyOTPView, PNDT_LicenseStatisticsView
+from .views import TenderCountAPIView, CompletedTendersWithoutEMDRefundList, AwardedTenderList, TendersnotawardedList, Top5pendingemd
 urlpatterns = [
     path('addusers/',views.AdminAddUsersApi.as_view()),
     path('addpersonaldetails/',views.AddPersonalDetailsApi.as_view()), #for testing only no need to connect
@@ -45,5 +46,13 @@ urlpatterns = [
 
     path('register-external-user/', views.ExternalUserRegistrationView.as_view(), name='register-external-user'),
     path('approve-external-user/<int:profile_id>/', views.ApproveExternalUserView.as_view(), name='approve-external-user'),
+    path('pndtoverview/', views.PNDT_LicenseStatisticsView.as_view()),
+    path('tenderoverview/', views.TenderCountAPIView.as_view()),
+    path('emd_refund_pending/', views.CompletedTendersWithoutEMDRefundList.as_view()),
+    path('awardedtenders/', AwardedTenderList.as_view()),
+    path('tendernotawardedlist/', TendersnotawardedList.as_view()),
+    path('appliedtenders/', AppliedTenderList.as_view()),
+    path('top5_pendingemd/', Top5pendingemd.as_view()), 
+    path('tenderlist/', views.ListTenderView.as_view()),
 
 ]

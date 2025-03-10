@@ -138,7 +138,6 @@ class TenderManager(models.Model):
     tender_description=models.TextField(null=True, blank=True)
     tender_attachments=models.FileField(null=True, blank=True)
     EMD_amount=models.CharField(max_length=50)
-    EMD_payment_status=models.BooleanField()
     payment_mode=[
         ('online','online'),
         ('offline','offline')
@@ -147,13 +146,24 @@ class TenderManager(models.Model):
     EMD_payment_date=models.DateField(null=True,blank=True)
     transaction_number=models.CharField(max_length=100,null=True,blank=True)
     payment_attachments=models.FileField(null=True,blank=True)
+    TENDER_STATUS=[
+        ('applied', 'applied'),
+        ('completed', 'completed')
+    ]
+    tender_status=models.CharField(max_length=100,choices=TENDER_STATUS,default='applied')
     forfeiture_status=models.BooleanField(default=False)
     forfeiture_reason=models.TextField(null=True,blank=True)
     EMD_refund_status=models.BooleanField()
     EMD_refund_date=models.DateField(null=True,blank=True)
+    BID_OUTCOME=[
+        ('won', 'won'),
+        ('lost', 'lost'),
+        ('not_declared', 'not_declared')
+    ]
+    bid_outcome=models.CharField(max_length=100,choices=BID_OUTCOME,default='not_declared')
 
-    def __str__(self):
-        return self.tender_title
+    def _str_(self):
+        return self.tender_id
 # class TenderManager(models.Model):
 
 
