@@ -714,38 +714,48 @@ class ExpireNotification(APIView):
 
 
 from .reports import report_as_excel
-class DownloadExcelReport(APIView):
+
+class DownloadTenderExcelReport(APIView):
     def get(self, request):
-        file_name = "LICENSE_REPORT"
-        title = "License Report"
+        file_name = "TENDER_REPORT"
+        title = "Tender Report"
 
         headers = [
             ("S.No", 10),
-            ("Application Type", 25),
-            ("License Number", 20),
-            ("Date of Approval", 15),
-            ("Expiry Date", 15),
-            ("Product Name", 30),
-            ("Model Number", 20),
-            ("Class of Device", 20),
+            ("Tender ID", 20),
+            ("Tender Title", 30),
+            ("Issuing Authority", 30),
+            ("Tender Description", 40),
+            ("EMD Amount", 15),
+            ("Payment Mode", 15),
+            ("EMD Payment Date", 15),
+            ("Tender Status", 15),
+            ("Bid Outcome", 15),
+            ("Forfeiture Status", 15),
+            ("Forfeiture Reason", 30),
         ]
 
-        licenses = License.objects.all()
+        tenders = TenderManager.objects.all()
         data = [
             [
                 index,
-                lic.application_type,
-                lic.license_number,
-                lic.date_of_approval.strftime('%Y-%m-%d'),
-                lic.expiry_date.strftime('%Y-%m-%d'),
-                lic.product_name,
-                lic.model_number,
-                lic.class_of_device_type,
+                tender.tender_id,
+                tender.tender_title,
+                tender.issuing_authority,
+                tender.tender_description,
+                tender.EMD_amount,
+                tender.EMD_payment_mode if tender.EMD_payment_mode else "N/A",
+                tender.EMD_payment_date.strftime('%Y-%m-%d') if tender.EMD_payment_date else "N/A",
+                tender.tender_status,
+                tender.bid_outcome,
+                "Yes" if tender.forfeiture_status else "No",
+                tender.forfeiture_reason if tender.forfeiture_reason else "N/A",
             ]
-            for index, lic in enumerate(licenses, start=1)
+            for index, tender in enumerate(tenders, start=1)
         ]
 
         return report_as_excel(title, headers, data, file_name)
+
     
 
 class TenderStatusView(APIView):

@@ -25,7 +25,7 @@ urlpatterns = [
     path('expire_notification/',views.ExpireNotification.as_view()),
 
     path('login/',views.LoginAPIView.as_view())  ,
-    path('download_license_excel/',views.DownloadExcelReport.as_view()) , 
+    path('download_license_excel/',views.DownloadTenderExcelReport.as_view()) , 
 
     path('tendernotifications/', views.TenderViewerNotificationView.as_view()),
     path('pndtnotifications/', views.PNDTLicenseViewerNotificationView.as_view()),
