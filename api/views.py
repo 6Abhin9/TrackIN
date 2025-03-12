@@ -1299,3 +1299,31 @@ class ListTenderView(APIView):
 
         # Return the response
         return Response(response_data, status=status.HTTP_200_OK)
+    
+
+class DashboardStatsView(APIView):
+    permission_classes = [IsAdminUser]  # Restrict access to admins only
+
+    def get(self, request):
+        current_date = now().date()
+
+        # **Total Counts**
+        total_users = Profile.objects.exclude(role='admin').count()  # Exclude admin users
+        total_licenses = License.objects.count()
+        total_tenders = TenderManager.objects.count()
+        total_pndt_licenses = PNDT_License.objects.count()
+
+        # **Active Counts**
+        active_licenses = License.objects.filter(expiry_date__gte=current_date).count()
+        active_tenders = TenderManager.objects.exclude(tender_status='completed').count()
+        active_pndt_licenses = PNDT_License.objects.filter(expiry_date__gte=current_date).count()
+
+        return Response({
+            "total_users": total_users,
+            "total_licenses": total_licenses,
+            "total_tenders": total_tenders,
+            "total_pndt_licenses": total_pndt_licenses,
+            "active_licenses": active_licenses,
+            "active_tenders": active_tenders,
+            "active_pndt_licenses": active_pndt_licenses
+        }, status=200)

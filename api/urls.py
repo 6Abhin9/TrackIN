@@ -54,5 +54,8 @@ urlpatterns = [
     path('appliedtenders/', AppliedTenderList.as_view()),
     path('top5_pendingemd/', Top5pendingemd.as_view()), 
     path('tenderlist/', views.ListTenderView.as_view()),
+    path('totalusers/', views.DashboardStatsView.as_view()),
+
+
 
 ]
