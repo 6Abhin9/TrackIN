@@ -59,6 +59,7 @@ class LoginAPIView(APIView):
                 'user': {
                     'id': user.id,
                     'email': user.email,
+                    'username': user.username,  # Include username in the response
                     'role': user.role,
                 },
                 'personal_details': {
@@ -324,6 +325,31 @@ class ChangeAddressApi(APIView):
             return Response({"msg": "Additional details not found for this profile"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ChangeUsernameApi(APIView):
+    def post(self, request):
+        data = request.data
+        profile_id = data.get("profile_id")
+        if not profile_id:
+            return Response({"msg": "A profile ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch the profile
+        profile = get_object_or_404(Profile, id=profile_id)
+
+        # Get the new username
+        new_username = data.get("new_username")
+        if not new_username:
+            return Response({"msg": "A new username is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the new username already exists
+        if Profile.objects.filter(username=new_username).exists():
+            return Response({"msg": "This username is already taken"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update the username
+        profile.username = new_username
+        profile.save()
+
+        return Response({"msg": "Username updated successfully"}, status=status.HTTP_200_OK)
 
 class ChangePasswordApi(APIView):
     def get(self,request):
@@ -867,67 +893,6 @@ class VerifyOTPView(APIView):
             # If the user does not exist, return an error
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         
-
-class ResetPasswordView(APIView):
-    permission_classes = [AllowAny]  # Allow any user to access this view
-
-    def post(self, request):
-        email = request.data.get("email")
-        otp = request.data.get("otp")
-        new_password = request.data.get("new_password")
-
-        # Debugging: Print the incoming request data
-        print(f"Incoming Request Data: {request.data}")
-        print(f"Email: {email}")
-        print(f"OTP: {otp}")
-        print(f"New Password: {new_password}")
-
-        # Validate required fields
-        if not email or not otp or not new_password:
-            return Response(
-                {"error": "Email, OTP, and new_password are required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            # Fetch the user by email
-            user = Profile.objects.get(email=email)
-            print(f"User Found: {user}")
-
-            # Fetch the OTP entry for the user
-            otp_entry = OTPVerification.objects.filter(user=user, otp=otp).first()
-            print(f"OTP Entry: {otp_entry}")
-
-            # Check if the OTP entry exists and is valid
-            if otp_entry and otp_entry.is_valid():
-                # Set the new password for the user
-                user.set_password(new_password)  # Hashes and saves the password
-                # Update the password_str field with the new password (plain text)
-                user.password_str = new_password
-                user.save()  # Save the user object
-                print("Password updated successfully")
-
-                # Delete the OTP entry after successful verification
-                otp_entry.delete()
-                return Response(
-                    {"message": "Password reset successful"}, status=status.HTTP_200_OK
-                )
-            else:
-                # If OTP is invalid or expired, return an error
-                return Response(
-                    {"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST
-                )
-
-        except Profile.DoesNotExist:
-            # If the user does not exist, return an error
-            print("User not found")
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            # Handle any unexpected errors
-            print(f"Unexpected error: {e}")
-            return Response(
-                {"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
         
 class ListTenderView(APIView):
     def get(self,request):

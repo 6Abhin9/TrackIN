@@ -12,7 +12,7 @@ ONESIGNAL_APP_ID = os.getenv('ONESIGNAL_APP_ID', '')
 ONESIGNAL_API_KEY = os.getenv('ONESIGNAL_API_KEY', '')
 
 
-@background(schedule=120)  # Runs in the background
+@background(schedule=1)  # Runs in the background
 def check_expiring_licenses():
     """Checks for expiring licenses and notifies License Managers and users."""
     print('Checking for expiring licenses...')

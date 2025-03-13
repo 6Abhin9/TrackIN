@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
-from .views import AppliedTenderList, FeedbackView, RequestOTPView, ResetPasswordView, VerifyOTPView, PNDT_LicenseStatisticsView
-from .views import TenderCountAPIView, CompletedTendersWithoutEMDRefundList, AwardedTenderList, TendersnotawardedList, Top5pendingemd
+from .views import AppliedTenderList, FeedbackView, RequestOTPView, VerifyOTPView, PNDT_LicenseStatisticsView
+from .views import TenderCountAPIView, CompletedTendersWithoutEMDRefundList, AwardedTenderList, TendersnotawardedList, Top5pendingemd, ChangeUsernameApi 
 urlpatterns = [
     path('addusers/',views.AdminAddUsersApi.as_view()),
     path('addpersonaldetails/',views.AddPersonalDetailsApi.as_view()), #for testing only no need to connect
@@ -33,7 +33,6 @@ urlpatterns = [
     path('tenderstatus/', views.TenderStatusView.as_view()),
     path('tenderlist/', views.ListTenderView.as_view()),
     path('updatetender/',views.UpdateTenderView.as_view()),
-    path('resetpassword/', views.ResetPasswordView.as_view()),
 
     path('request-otp/', RequestOTPView.as_view(), name='request-otp'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
@@ -52,6 +51,7 @@ urlpatterns = [
     path('awardedtenders/', AwardedTenderList.as_view()),
     path('tendernotawardedlist/', TendersnotawardedList.as_view()),
     path('appliedtenders/', AppliedTenderList.as_view()),
+    path('change-username/', ChangeUsernameApi.as_view()),
     path('top5_pendingemd/', Top5pendingemd.as_view()), 
     path('tenderlist/', views.ListTenderView.as_view()),
 

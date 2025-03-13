@@ -79,4 +79,4 @@ class PNDTLicenseSerializers(serializers.ModelSerializer):
 class TenderManagerSerializer(serializers.ModelSerializer):
     class Meta:
         model = TenderManager
-        fields = '_all_'
+        fields = '__all__'
