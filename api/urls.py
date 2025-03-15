@@ -55,7 +55,7 @@ urlpatterns = [
     path('top5_pendingemd/', Top5pendingemd.as_view()), 
     path('tenderlist/', views.ListTenderView.as_view()),
     path('totalusers/', views.DashboardStatsView.as_view()),
-    path('update-profile-image/', UpdateProfileImageView.as_view(), name='update-profile-image')
+    path('update-profile-image/', UpdateProfileImageView.as_view())
 
 
 ]

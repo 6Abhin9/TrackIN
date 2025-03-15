@@ -645,7 +645,7 @@ class LicenseViewerNotificationView(APIView):
 
     def get(self, request):
         user_role = request.user.role
-        if user_role not in ["internal_license_viewer", "external_license_viewer"]:
+        if user_role not in ["internal_license_viewer"]:
             return Response({"msg": "Unauthorized"}, status=403)
 
         notification_list = Notification.objects.filter(profile__role=user_role)
