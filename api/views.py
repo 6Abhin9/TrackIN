@@ -493,15 +493,12 @@ class UpdateLicenseView(APIView):
     
 
 import logging
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils.timezone import now
-from .models import Profile, Notification
-
 logger = logging.getLogger(__name__)
 
+
 class SendNotificationView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can send notifications
+
     def post(self, request):
         data = request.data
         sender_profile_id = data.get('profile')  # Sender's profile ID
@@ -511,40 +508,32 @@ class SendNotificationView(APIView):
         logger.info(f"Received request: {data}")
 
         if not sender_profile_id:
-            return Response({"msg": "Profile ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "Profile ID is required"}, status=400)
 
         try:
             sender_profile = Profile.objects.get(id=sender_profile_id)
         except Profile.DoesNotExist:
-            return Response({"msg": "Profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"msg": "Profile does not exist"}, status=404)
 
         if not title or not content:
-            return Response({"msg": "Title and content are required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "Title and content are required"}, status=400)
 
-        # Log the sender's role
         logger.info(f"Sender's role: {sender_profile.role}")
 
         # Determine recipients based on sender role
         if sender_profile.role == 'admin':
-            # Admin can send notifications to all users
             recipients = Profile.objects.all()
         elif sender_profile.role == 'license_manager':
-            # Send to internal and external license viewers
             recipients = Profile.objects.filter(role__in=['internal_license_viewer', 'external_license_viewer'])
         elif sender_profile.role == 'tender_manager':
-            # Send to tender viewers
             recipients = Profile.objects.filter(role='tender_viewer')
         elif sender_profile.role == 'pndt_license_manager':
-            # Send to PNDT license viewers
             recipients = Profile.objects.filter(role='pndt_license_viewer')
         else:
-            # Unauthorized roles
-            return Response({"msg": "Unauthorized to send notifications"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"msg": "Unauthorized to send notifications"}, status=403)
 
-        # Log the recipients
         logger.info(f"Recipients: {recipients}")
 
-        # Send notification to all recipients
         notifications = []
         for recipient in recipients:
             try:
@@ -567,72 +556,102 @@ class SendNotificationView(APIView):
         return Response({
             "msg": "Notifications sent successfully",
             "notifications": notifications
-        }, status=status.HTTP_200_OK)
-        
+        }, status=200)
+
 
 class ViewNotificationView(APIView):
-    def get(self,request):
-        role=request.GET.get("role")
-        notification_list=Notification.objects.all()
-        if role:
-            notification_list = notification_list.filter(profile__role=role)
+    permission_classes = [IsAuthenticated]  # Only authenticated users can view notifications
+
+    def get(self, request):
+        user_role = request.user.role  # Get logged-in user's role
+
+        # Fetch notifications based on user role
+        if user_role == "external_license_viewer":
+            notification_list = Notification.objects.filter(sender_profile__role="admin", profile__role=user_role)
+        else:
+            notification_list = Notification.objects.filter(profile__role=user_role)
+
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=200)
 
 
 class UpdateNotificationView(APIView):
-    def patch(self,request):
-        data=request.data
-        profile_id=data.get('id')
-        if not profile_id: 
-            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
-        notification=get_object_or_404(Notification,id=profile_id)
-        serializer=NotificationsDetailsSerializers(notification,data=request.data,partial=True)
+    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can update notifications
+
+    def patch(self, request):
+        data = request.data
+        notification_id = data.get('id')
+        if not notification_id:
+            return Response({"msg": "An id is required"}, status=400)
+
+        notification = get_object_or_404(Notification, id=notification_id)
+        serializer = NotificationsDetailsSerializers(notification, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
-            return Response({"msg": "editted successfully"},status=status.HTTP_200_OK)
+            return Response({"msg": "Edited successfully"}, status=200)
         else:
-            return Response({"msg": "something went wrong",}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"msg": "Something went wrong"}, status=400)
 
-    def get(self,request):
-        data=request.data
-        profile_id=data.get('id')
-        if not profile_id: 
-            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
-        notification=get_object_or_404(Notification,id=profile_id)
-        serializer=NotificationsDetailsSerializers(notification)
-        return Response(serializer.data,status=status.HTTP_200_OK)
-    
-    def delete(self,request):
-        data=request.data
-        profile_id=data.get('id')
-        if not profile_id: 
-            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
-        notification=get_object_or_404(Notification,id=profile_id)
+    def get(self, request):
+        data = request.data
+        notification_id = data.get('id')
+        if not notification_id:
+            return Response({"msg": "An id is required"}, status=400)
+
+        notification = get_object_or_404(Notification, id=notification_id)
+        serializer = NotificationsDetailsSerializers(notification)
+        return Response(serializer.data, status=200)
+
+    def delete(self, request):
+        data = request.data
+        notification_id = data.get('id')
+        if not notification_id:
+            return Response({"msg": "An id is required"}, status=400)
+
+        notification = get_object_or_404(Notification, id=notification_id)
         notification.delete()
-        return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
+        return Response({'msg': 'Deleted successfully'}, status=200)
+
 
 class TenderViewerNotificationView(APIView):
+    permission_classes = [IsAuthenticated]  # Only authenticated users can access
+
     def get(self, request):
-        role = request.GET.get("role")
-        notification_list = Notification.objects.filter(profile__role=role)
+        user_role = request.user.role
+        if user_role != "tender_viewer":
+            return Response({"msg": "Unauthorized"}, status=403)
+
+        notification_list = Notification.objects.filter(profile__role=user_role)
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        return Response(serializer.data, status=200)
+
+
 class PNDTLicenseViewerNotificationView(APIView):
+    permission_classes = [IsAuthenticated]  # Only authenticated users can access
+
     def get(self, request):
-        role = request.GET.get("role")
-        notification_list = Notification.objects.filter(profile__role=role)
+        user_role = request.user.role
+        if user_role != "pndt_license_viewer":
+            return Response({"msg": "Unauthorized"}, status=403)
+
+        notification_list = Notification.objects.filter(profile__role=user_role)
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        return Response(serializer.data, status=200)
+
+
 class LicenseViewerNotificationView(APIView):
+    permission_classes = [IsAuthenticated]  # Only authenticated users can access
+
     def get(self, request):
-        role = request.GET.get("role")
-        notification_list = Notification.objects.filter(profile__role=role)
+        user_role = request.user.role
+        if user_role not in ["internal_license_viewer", "external_license_viewer"]:
+            return Response({"msg": "Unauthorized"}, status=403)
+
+        notification_list = Notification.objects.filter(profile__role=user_role)
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=200)
+
 
 
 class FeedbackView(APIView):
