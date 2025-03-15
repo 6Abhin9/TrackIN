@@ -61,6 +61,7 @@ class LoginAPIView(APIView):
                     'email': user.email,
                     'username': user.username,  # Include username in the response
                     'role': user.role,
+                    'image': user.image.url if user.image else None,  # Include the profile image URL
                 },
                 'personal_details': {
                     'date_of_birth': personal_details.date_of_birth if personal_details else None,
@@ -105,6 +106,7 @@ class AdminAddUsersApi(APIView):
         first_name = data.get('firstname')
         last_name = data.get('lastname')
         role = data.get("role")
+        image = request.FILES.get('image')  # Get the uploaded image
 
         # AdditionalDetails fields (optional)
         state = data.get('state', None)
@@ -121,11 +123,12 @@ class AdminAddUsersApi(APIView):
                 password=password,
                 email=email,
                 role=role,
-                username=email
+                username=email,
+                image=image  # Add the image field
             )
             user.password_str = password
             user.save()
-            state='';
+
             # Check if any AdditionalDetails fields are provided
             if True:
                 # Create the AdditionalDetails record linked to the Profile
@@ -136,8 +139,6 @@ class AdminAddUsersApi(APIView):
                     pincode=pincode,
                     phone=phone,
                     bio=bio
-
-
                 )
                 PersonalDetails.objects.create(profile=user)
 
@@ -146,7 +147,20 @@ class AdminAddUsersApi(APIView):
         except Exception as e:
             return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+class UpdateProfileImageView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def patch(self, request):
+        user = request.user
+        image = request.FILES.get('image')
+
+        if not image:
+            return Response({"msg": "No image provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.image = image
+        user.save()
+
+        return Response({"msg": "Profile image updated successfully"}, status=status.HTTP_200_OK)
 
 class ListUsersView(APIView):
     def get(self,request):

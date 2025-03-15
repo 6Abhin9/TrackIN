@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import AppliedTenderList, FeedbackView, RequestOTPView, VerifyOTPView, PNDT_LicenseStatisticsView
+from .views import AppliedTenderList, FeedbackView, RequestOTPView, UpdateProfileImageView, VerifyOTPView, PNDT_LicenseStatisticsView
 from .views import TenderCountAPIView, CompletedTendersWithoutEMDRefundList, AwardedTenderList, TendersnotawardedList, Top5pendingemd, ChangeUsernameApi 
 urlpatterns = [
     path('addusers/',views.AdminAddUsersApi.as_view()),
@@ -55,7 +55,7 @@ urlpatterns = [
     path('top5_pendingemd/', Top5pendingemd.as_view()), 
     path('tenderlist/', views.ListTenderView.as_view()),
     path('totalusers/', views.DashboardStatsView.as_view()),
-
+    path('update-profile-image/', UpdateProfileImageView.as_view(), name='update-profile-image')
 
 
 ]

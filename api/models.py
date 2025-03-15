@@ -11,6 +11,7 @@ class Registration(models.Model):
     def __str__(self):
         return self.name
 
+
 class Profile(AbstractUser):
     REQUIRED_FIELDS = ['username']
     USERNAME_FIELD = 'email'
@@ -32,6 +33,7 @@ class Profile(AbstractUser):
     role = models.CharField(max_length=30, choices=ROLE_CHOICES)
     authority = models.CharField(max_length=255, null=True, blank=True)
     is_approved = models.BooleanField(default=False)  # Approval required only for external users
+    image = models.ImageField(upload_to='profile_images/', null=True, blank=True)  # New field for profile image
 
     def __str__(self):
         return self.email

@@ -10,8 +10,12 @@ class RegistrationSerializers(serializers.ModelSerializer):
 
 class ProfileSerializers(serializers.ModelSerializer):
     class Meta:
-        model=Profile
-        fields='__all__'
+        model = Profile
+        fields = '__all__'
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'image': {'required': False}  # Make the image field optional
+        }
 
 class PersonalDetailsSerializers(serializers.ModelSerializer):
     class Meta:
