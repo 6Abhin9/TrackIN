@@ -1339,3 +1339,66 @@ class DashboardStatsView(APIView):
             "active_tenders": active_tenders,
             "active_pndt_licenses": active_pndt_licenses
         }, status=200)
+
+
+class LicenseExpiryAndActiveByDate(APIView):
+    def get(self, request):
+        selected_date = request.GET.get("date")  # Get the selected date from query params
+
+        if not selected_date:
+            return Response({"error": "Please provide a date in YYYY-MM-DD format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            selected_date = datetime.strptime(selected_date, "%Y-%m-%d").date()  # Convert string to date
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Licenses expiring on the selected date
+        expiring_licenses = License.objects.filter(expiry_date=selected_date)
+
+        # Licenses that became active on the selected date
+        newly_active_licenses = License.objects.filter(issue_date=selected_date)
+
+        # Licenses that are still active after the selected date
+        active_licenses = License.objects.filter(expiry_date__gt=selected_date)
+
+        expiring_data = [
+            {
+                "license_id": licen.id,
+                "license_name": licen.name,
+                "expiry_date": licen.expiry_date,
+                "message": f"Your license '{licen.name}' is expiring on {licen.expiry_date}!",
+            }
+            for licen in expiring_licenses
+        ]
+
+        newly_active_data = [
+            {
+                "license_id": licen.id,
+                "license_name": licen.name,
+                "issue_date": licen.issue_date,
+                "expiry_date": licen.expiry_date,
+                "message": f"Your license '{licen.name}' became active on {licen.issue_date}!",
+            }
+            for licen in newly_active_licenses
+        ]
+
+        active_data = [
+            {
+                "license_id": licen.id,
+                "license_name": licen.name,
+                "expiry_date": licen.expiry_date,
+                "message": f"Your license '{licen.name}' is still active after {selected_date}!",
+            }
+            for licen in active_licenses
+        ]
+
+        return Response(
+            {
+                "selected_date": selected_date,
+                "expiring_licenses": expiring_data,
+                "newly_active_licenses": newly_active_data,
+                "active_licenses": active_data,
+            },
+            status=status.HTTP_200_OK,
+        )
