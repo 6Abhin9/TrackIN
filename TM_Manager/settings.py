@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['localhost','127.0.0.1','*','https://f383-2409-40f3-100c-f34d-f
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -142,3 +143,53 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+#jazzmin admin pannel settings for customization
+
+JAZZMIN_SETTINGS = {
+    "site_title": "MedDox Admin",
+    "site_header": "MedDox",
+    "site_brand": "MedDox",
+    "welcome_sign": "Welcome to MedDox Admin Dashboard",
+
+    # Enable UI Builder
+    "show_ui_builder": True,
+
+    # Show a search bar in the top navigation
+    "search_model": ["auth.User"],  # Enables search bar
+
+    # Top navigation bar links
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"], "new_window": False, "icon": "fas fa-home"},
+        {"name": "Support", "url": "https://your-support-url.com", "new_window": True, "icon": "fas fa-life-ring"},
+        {"name": "Users", "url": "admin:auth_user_changelist", "permissions": ["auth.view_user"], "icon": "fas fa-users"},
+    ],
+
+    # Icons for models
+    "icons": {
+        "api.License": "fas fa-id-card",  
+        "api.Tender": "fas fa-file-contract",
+        "auth.User": "fas fa-users",
+        "auth.Group": "fas fa-users-cog",
+        "api.Notification": "fas fa-bell",
+        "api.Profile": "fas fa-user-circle",
+        "api.PNDT_License": "fas fa-file-medical",
+        "api.TenderManager": "fas fa-briefcase",
+        "api.PersonalDetails": "fas fa-address-card",
+        "api.Feedback": "fas fa-comment-dots",
+        "api.RecentlyViewed": "fas fa-history",
+    },
+
+    # Default icons for parents & children
+    "default_icon_parents": "fas fa-folder-open",
+    "default_icon_children": "fas fa-file-alt",
+
+    # Show admin's profile image instead of default icon
+    "user_avatar": "image",
+    
+    # Copyright text in the footer
+    "copyright": "MedDox.",
+}
+
+
