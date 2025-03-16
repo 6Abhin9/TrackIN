@@ -148,10 +148,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 #jazzmin admin pannel settings for customization
 
 JAZZMIN_SETTINGS = {
-    "site_title": "MedDox Admin",
-    "site_header": "MedDox",
-    "site_brand": "MedDox",
-    "welcome_sign": "Welcome to MedDox Admin Dashboard",
+    "site_title": "MedDocx Admin",
+    "site_header": "MedDocx",
+    "site_brand": "MedDocx",
+    "welcome_sign": "Welcome to MedDocx Admin Dashboard",
 
     # Enable UI Builder
     "show_ui_builder": True,
@@ -189,7 +189,7 @@ JAZZMIN_SETTINGS = {
     "user_avatar": "image",
     
     # Copyright text in the footer
-    "copyright": "MedDox.",
+    "copyright": "MedDocx.",
 }
 
 
