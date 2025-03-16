@@ -29,7 +29,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
-
+from .signals import user_created  # Import the custom signal
 
 
 class LoginAPIView(APIView):
@@ -106,7 +106,7 @@ class AdminAddUsersApi(APIView):
         first_name = data.get('firstname')
         last_name = data.get('lastname')
         role = data.get("role")
-        image = request.FILES.get('image')  # Get the uploaded image
+        image = request.FILES.get('image')
 
         # AdditionalDetails fields (optional)
         state = data.get('state', None)
@@ -124,14 +124,16 @@ class AdminAddUsersApi(APIView):
                 email=email,
                 role=role,
                 username=email,
-                image=image  # Add the image field
+                image=image
             )
             user.password_str = password
             user.save()
 
-            # Check if any AdditionalDetails fields are provided
+            # Send the custom signal after password_str is set
+            user_created.send(sender=self.__class__, instance=user)
+
+            # Create AdditionalDetails if needed
             if True:
-                # Create the AdditionalDetails record linked to the Profile
                 AdditionalDetails.objects.create(
                     profile=user,
                     state=state,
@@ -366,23 +368,25 @@ class ChangeUsernameApi(APIView):
         return Response({"msg": "Username updated successfully"}, status=status.HTTP_200_OK)
 
 class ChangePasswordApi(APIView):
-    def get(self,request):
-        data=request.data
-        profile_id=data.get("profile_id")
+    def get(self, request):
+        # Use request.GET to access query parameters
+        profile_id = request.GET.get("profile_id")
+        password = request.GET.get("password")
+        new_password = request.GET.get("new_password")
+
         if not profile_id:
-            return Response({"msg":"an id is required"},status=status.HTTP_400_BAD_REQUEST)
-        profile=get_object_or_404(Profile,id=profile_id)
-        password=data.get("password")
-        password2=profile.password_str
-        print(password)
-        if password==password2:
-            new_password=data.get("new_password")
+            return Response({"msg": "an id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile = get_object_or_404(Profile, id=profile_id)
+
+        # Verify the current password
+        if password == profile.password_str:
             profile.set_password(new_password)
-            profile.password_str=new_password
+            profile.password_str = new_password
             profile.save()
-            return Response({"msg": "editted successfully"},status=status.HTTP_200_OK)
+            return Response({"msg": "Password changed successfully"}, status=status.HTTP_200_OK)
         else:
-            return Response({"msg":"the passwords do not match"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg": "The passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
   
 
 class ExternalUserRegistrationView(APIView):
