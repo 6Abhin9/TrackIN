@@ -1357,7 +1357,7 @@ class LicenseExpiryAndActiveByDate(APIView):
         expiring_licenses = License.objects.filter(expiry_date=selected_date)
 
         # Licenses that became active on the selected date
-        newly_active_licenses = License.objects.filter(issue_date=selected_date)
+        newly_active_licenses = License.objects.filter(date_of_approval=selected_date)
 
         # Licenses that are still active after the selected date
         active_licenses = License.objects.filter(expiry_date__gt=selected_date)
@@ -1365,9 +1365,11 @@ class LicenseExpiryAndActiveByDate(APIView):
         expiring_data = [
             {
                 "license_id": licen.id,
-                "license_name": licen.name,
+                "license_number": licen.license_number,
+                "application_number": licen.application_number,
+                "product_name": licen.product_name,
                 "expiry_date": licen.expiry_date,
-                "message": f"Your license '{licen.name}' is expiring on {licen.expiry_date}!",
+                "message": f"Your license '{licen.license_number}' for '{licen.product_name}' is expiring on {licen.expiry_date}!",
             }
             for licen in expiring_licenses
         ]
@@ -1375,10 +1377,12 @@ class LicenseExpiryAndActiveByDate(APIView):
         newly_active_data = [
             {
                 "license_id": licen.id,
-                "license_name": licen.name,
-                "issue_date": licen.issue_date,
+                "license_number": licen.license_number,
+                "application_number": licen.application_number,
+                "product_name": licen.product_name,
+                "date_of_approval": licen.date_of_approval,
                 "expiry_date": licen.expiry_date,
-                "message": f"Your license '{licen.name}' became active on {licen.issue_date}!",
+                "message": f"Your license '{licen.license_number}' for '{licen.product_name}' became active on {licen.date_of_approval}!",
             }
             for licen in newly_active_licenses
         ]
@@ -1386,9 +1390,11 @@ class LicenseExpiryAndActiveByDate(APIView):
         active_data = [
             {
                 "license_id": licen.id,
-                "license_name": licen.name,
+                "license_number": licen.license_number,
+                "application_number": licen.application_number,
+                "product_name": licen.product_name,
                 "expiry_date": licen.expiry_date,
-                "message": f"Your license '{licen.name}' is still active after {selected_date}!",
+                "message": f"Your license '{licen.license_number}' for '{licen.product_name}' is still active after {selected_date}!",
             }
             for licen in active_licenses
         ]
