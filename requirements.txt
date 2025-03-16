@@ -5,6 +5,7 @@ charset-normalizer==3.4.1
 distlib==0.3.9
 Django==5.1.4
 django-background-tasks==1.2.8
+django-jazzmin==3.0.1
 djangorestframework==3.15.2
 djangorestframework_simplejwt==5.4.0
 et_xmlfile==2.0.0
