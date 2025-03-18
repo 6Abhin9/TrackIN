@@ -5,7 +5,7 @@ from django.conf import settings
 import os
 import requests
 
-from .models import License, Profile, PlayerId
+from .models import License, Profile, PlayerId, PNDT_License, Notification
 
 # OneSignal Configuration
 ONESIGNAL_APP_ID = os.getenv('ONESIGNAL_APP_ID', '')
@@ -19,6 +19,7 @@ def check_expiring_licenses():
     today = datetime.today().date()
     notifications = []
 
+    # Check for regular licenses
     licenses = License.objects.all()
 
     for licen in licenses:
@@ -56,7 +57,63 @@ def check_expiring_licenses():
                 send_push_notification(user_ids, licen.license_number, days_left)
                 if user_ids:
                     print('hiii');
-                    
+
+                # Create Notification records for License Managers
+                for manager in license_managers:
+                    Notification.objects.create(
+                        profile=manager,
+                        title="License Expiry Notification",
+                        content=f"License '{licen.license_number}' is expiring in {days_left} days.",
+                        time=datetime.now()
+                    )
+
+    # Check for PNDT licenses
+    pndt_licenses = PNDT_License.objects.all()
+
+    for pndt_licen in pndt_licenses:
+        if pndt_licen.expiry_date:
+            days_left = (pndt_licen.expiry_date - today).days
+            if days_left in [60, 30, 1]:  
+                notifications.append({
+                    "license_id": pndt_licen.id,
+                    "license_number": pndt_licen.license_number,
+                    "expiry_date": pndt_licen.expiry_date,
+                    "days_left": days_left,
+                    "message": f"Your PNDT license '{pndt_licen.license_number}' is expiring in {days_left} days!",
+                })
+
+                # Get all PNDT Managers and Viewers
+                pndt_managers = Profile.objects.filter(role__in=['pndt_license_manager', 'pndt_license_viewer'])
+                pndt_emails = pndt_managers.values_list('email', flat=True)
+
+                # Send email to PNDT Managers and Viewers
+                if pndt_emails:
+                    send_mail(
+                        "PNDT License Expiry Notification",
+                        f"PNDT License '{pndt_licen.license_number}' is expiring in {days_left} days.",
+                        "meddocxinc@gmail.com",  # Sender email
+                        list(pndt_emails),
+                        fail_silently=False,
+                    )
+                    print(f"Email sent to PNDT Managers and Viewers: {list(pndt_emails)}")
+
+                # Send push notification to users
+                users = PlayerId.objects.all()  
+                user_ids = users.values_list('player_id', flat=True)
+                print(user_ids)
+
+                send_push_notification(user_ids, pndt_licen.license_number, days_left)
+                if user_ids:
+                    print('hiii');
+
+                # Create Notification records for PNDT Managers and Viewers
+                for pndt_manager in pndt_managers:
+                    Notification.objects.create(
+                        profile=pndt_manager,
+                        title="PNDT License Expiry Notification",
+                        content=f"PNDT License '{pndt_licen.license_number}' is expiring in {days_left} days.",
+                        time=datetime.now()
+                    )
 
     if notifications:
         print("Expiring Licenses:", notifications)

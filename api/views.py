@@ -541,6 +541,7 @@ class SendNotificationView(APIView):
             try:
                 notification = Notification.objects.create(
                     profile=recipient,
+                    sender_profile=sender_profile,  # Ensure sender is saved
                     title=title,
                     content=content,
                     time=now()
@@ -548,6 +549,7 @@ class SendNotificationView(APIView):
                 logger.info(f"Notification created: {notification}")
                 notifications.append({
                     "profile": recipient.id,
+                    "sender_profile": sender_profile.id,  # Add sender profile in response
                     "title": notification.title,
                     "content": notification.content,
                     "time": notification.time
@@ -559,6 +561,7 @@ class SendNotificationView(APIView):
             "msg": "Notifications sent successfully",
             "notifications": notifications
         }, status=200)
+
 
 
 class ViewNotificationView(APIView):
@@ -581,6 +584,7 @@ class ViewNotificationView(APIView):
             notification_list = Notification.objects.filter(profile_id=profile_id)
 
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        print(serializer.data)
         return Response(serializer.data, status=200)
 
 
