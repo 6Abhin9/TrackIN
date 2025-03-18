@@ -501,8 +501,6 @@ logger = logging.getLogger(__name__)
 
 
 class SendNotificationView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can send notifications
-
     def post(self, request):
         data = request.data
         sender_profile_id = data.get('profile')  # Sender's profile ID
@@ -564,16 +562,23 @@ class SendNotificationView(APIView):
 
 
 class ViewNotificationView(APIView):
-    permission_classes = [IsAuthenticated]  # Only authenticated users can view notifications
-
     def get(self, request):
-        user_role = request.user.role  # Get logged-in user's role
+        # Get profile_id and role from query parameters
+        profile_id = request.query_params.get('profile_id')
+        role = request.query_params.get('role')
 
-        # Fetch notifications based on user role
-        if user_role == "external_license_viewer":
-            notification_list = Notification.objects.filter(sender_profile__role="admin", profile__role=user_role)
+        if not profile_id or not role:
+            return Response({"msg": "profile_id and role are required"}, status=400)
+
+        # Fetch notifications based on role and profile_id
+        if role == "license_manager":
+            notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile_id=profile_id)
+        elif role == "pndt_license_manager":
+            notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile_id=profile_id)
+        elif role == "tender_manager":
+            notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile_id=profile_id)
         else:
-            notification_list = Notification.objects.filter(profile__role=user_role)
+            notification_list = Notification.objects.filter(profile_id=profile_id)
 
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=200)
@@ -619,40 +624,57 @@ class UpdateNotificationView(APIView):
 
 
 class TenderViewerNotificationView(APIView):
-    permission_classes = [IsAuthenticated]  # Only authenticated users can access
-
     def get(self, request):
-        user_role = request.user.role
-        if user_role != "tender_viewer":
+        profile_id = request.query_params.get('profile_id')
+        role = request.query_params.get('role')
+
+        if role != "tender_viewer":
             return Response({"msg": "Unauthorized"}, status=403)
 
-        notification_list = Notification.objects.filter(profile__role=user_role)
+        # Fetch notifications sent by tender_manager
+        notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile__role="tender_manager")
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=200)
 
 
 class PNDTLicenseViewerNotificationView(APIView):
-    permission_classes = [IsAuthenticated]  # Only authenticated users can access
-
     def get(self, request):
-        user_role = request.user.role
-        if user_role != "pndt_license_viewer":
+        profile_id = request.query_params.get('profile_id')
+        role = request.query_params.get('role')
+
+        if role != "pndt_license_viewer":
             return Response({"msg": "Unauthorized"}, status=403)
 
-        notification_list = Notification.objects.filter(profile__role=user_role)
+        # Fetch notifications sent by pndt_license_manager
+        notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile__role="pndt_license_manager")
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=200)
 
 
 class LicenseViewerNotificationView(APIView):
-    permission_classes = [IsAuthenticated]  # Only authenticated users can access
-
     def get(self, request):
-        user_role = request.user.role
-        if user_role not in ["internal_license_viewer"]:
+        profile_id = request.query_params.get('profile_id')
+        role = request.query_params.get('role')
+
+        if role not in ["internal_license_viewer", "external_license_viewer"]:
             return Response({"msg": "Unauthorized"}, status=403)
 
-        notification_list = Notification.objects.filter(profile__role=user_role)
+        # Fetch notifications sent by license_manager
+        notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile__role="license_manager")
+        serializer = NotificationsDetailsSerializers(notification_list, many=True)
+        return Response(serializer.data, status=200)
+
+
+class ExternalLicenseViewerNotificationView(APIView):
+    def get(self, request):
+        profile_id = request.query_params.get('profile_id')
+        role = request.query_params.get('role')
+
+        if role != "external_license_viewer":
+            return Response({"msg": "Unauthorized"}, status=403)
+
+        # Fetch notifications sent by admin
+        notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile__role="admin")
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=200)
 
@@ -897,7 +919,7 @@ class RequestOTPView(APIView):
             send_mail(
                 "Password Reset OTP",
                 f"Your OTP is: {otp}",
-                "trackinn69@gmail.com",  # Replace with your email
+                "meddocx@gmail.com",  # Replace with your email
                 [email],
                 fail_silently=False,
             )
@@ -1342,63 +1364,22 @@ class DashboardStatsView(APIView):
 
 
 class LicenseExpiryAndActiveByDate(APIView):
-    def get(self, request):
-        selected_date = request.GET.get("date")  # Get the selected date from query params
-
-        if not selected_date:
-            return Response({"error": "Please provide a date in YYYY-MM-DD format."}, status=status.HTTP_400_BAD_REQUEST)
-
+    def post(self, request):
         try:
-            selected_date = datetime.strptime(selected_date, "%Y-%m-%d").date()  # Convert string to date
-        except ValueError:
-            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+            # Fetch all licenses from the database
+            all_licenses = License.objects.all()
 
-        # Licenses expiring on the selected date
-        expiring_licenses = License.objects.filter(expiry_date=selected_date)
+            # Format the data with only the required fields
+            formatted_licenses = format_license_data(all_licenses)
 
-        # Licenses that became active on the selected date
-        newly_active_licenses = License.objects.filter(issue_date=selected_date)
-
-        # Licenses that are still active after the selected date
-        active_licenses = License.objects.filter(expiry_date__gt=selected_date)
-
-        expiring_data = [
-            {
-                "license_id": licen.id,
-                "license_name": licen.name,
-                "expiry_date": licen.expiry_date,
-                "message": f"Your license '{licen.name}' is expiring on {licen.expiry_date}!",
-            }
-            for licen in expiring_licenses
-        ]
-
-        newly_active_data = [
-            {
-                "license_id": licen.id,
-                "license_name": licen.name,
-                "issue_date": licen.issue_date,
-                "expiry_date": licen.expiry_date,
-                "message": f"Your license '{licen.name}' became active on {licen.issue_date}!",
-            }
-            for licen in newly_active_licenses
-        ]
-
-        active_data = [
-            {
-                "license_id": licen.id,
-                "license_name": licen.name,
-                "expiry_date": licen.expiry_date,
-                "message": f"Your license '{licen.name}' is still active after {selected_date}!",
-            }
-            for licen in active_licenses
-        ]
-
-        return Response(
-            {
-                "selected_date": selected_date,
-                "expiring_licenses": expiring_data,
-                "newly_active_licenses": newly_active_data,
-                "active_licenses": active_data,
-            },
-            status=status.HTTP_200_OK,
-        )
+            return Response(
+                {
+                    "licenses": formatted_licenses if formatted_licenses else "No licenses found.",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred while fetching data: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

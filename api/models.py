@@ -114,11 +114,11 @@ class License(models.Model):
     
 
 class Notification(models.Model):
-    profile=models.ForeignKey(Profile,on_delete=models.CASCADE)
-    title=models.CharField(max_length=150,null=True,blank=True)
-    content=models.TextField()
-    time=models.DateTimeField(null=True,blank=True)
-    
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='received_notifications')
+    sender_profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='sent_notifications', null=True, blank=True)
+    title = models.CharField(max_length=150, null=True, blank=True)
+    content = models.TextField()
+    time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.title

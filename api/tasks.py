@@ -42,7 +42,7 @@ def check_expiring_licenses():
                     send_mail(
                         "License Expiry Notification",
                         f"License '{licen.license_number}' is expiring in {days_left} days.",
-                        "trackinn69@gmail.com",  # Sender email
+                        "meddocxinc@gmail.com",  # Sender email
                         list(manager_emails),
                         fail_silently=False,
                     )
