@@ -30,6 +30,7 @@ urlpatterns = [
     path('tendernotifications/', views.TenderViewerNotificationView.as_view()),
     path('pndtnotifications/', views.PNDTLicenseViewerNotificationView.as_view()),
     path('licensenotifications/', views.LicenseViewerNotificationView.as_view()),
+    path('externalviewernotification/', views.ExternalLicenseViewerNotificationView.as_view()),
     path('tenderstatus/', views.TenderStatusView.as_view()),
     path('tenderlist/', views.ListTenderView.as_view()),
     path('updatetender/',views.UpdateTenderView.as_view()),
@@ -56,6 +57,7 @@ urlpatterns = [
     path('tenderlist/', views.ListTenderView.as_view()),
     path('totalusers/', views.DashboardStatsView.as_view()),
     path('update-profile-image/', UpdateProfileImageView.as_view()),
+    path('updateprofile/', UpdateProfileImageView.as_view()),
     path('license_calendar/', views.LicenseExpiryAndActiveByDate.as_view())
 
 ]

@@ -35,7 +35,7 @@ def check_expiring_licenses():
                 })
 
                 # Get all License Managers
-                license_managers = Profile.objects.filter(role='license_manager')
+                license_managers = Profile.objects.filter(role__in=['license_manager', 'internal_license_viewer'])
                 manager_emails = license_managers.values_list('email', flat=True)
 
                 # Send email to License Managers

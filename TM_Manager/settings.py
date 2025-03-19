@@ -156,9 +156,6 @@ JAZZMIN_SETTINGS = {
     # Enable UI Builder
     "show_ui_builder": True,
 
-    # Show a search bar in the top navigation
-    "search_model": ["auth.User"],  # Enables search bar
-
     # Top navigation bar links
     "topmenu_links": [
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"], "new_window": False, "icon": "fas fa-home"},

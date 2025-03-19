@@ -526,7 +526,7 @@ class SendNotificationView(APIView):
         if sender_profile.role == 'admin':
             recipients = Profile.objects.all()
         elif sender_profile.role == 'license_manager':
-            recipients = Profile.objects.filter(role__in=['internal_license_viewer', 'external_license_viewer'])
+            recipients = Profile.objects.filter(role__in=['internal_license_viewer'])
         elif sender_profile.role == 'tender_manager':
             recipients = Profile.objects.filter(role='tender_viewer')
         elif sender_profile.role == 'pndt_license_manager':
@@ -574,111 +574,100 @@ class ViewNotificationView(APIView):
             return Response({"msg": "profile_id and role are required"}, status=400)
 
         # Fetch notifications based on role and profile_id
-        if role == "license_manager":
-            notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile_id=profile_id)
+        if role == "admin":
+            # Admin can see all notifications
+            notification_list = Notification.objects.all()
+        elif role == "license_manager":
+            # License manager can see notifications sent to them or sent by them to others
+            notification_list = Notification.objects.filter(
+                Q(profile_id=profile_id) | Q(sender_profile_id=profile_id)
+            )
         elif role == "pndt_license_manager":
-            notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile_id=profile_id)
+            # PNDT license manager can see notifications sent to them or sent by them to others
+            notification_list = Notification.objects.filter(
+                Q(profile_id=profile_id) | Q(sender_profile_id=profile_id)
+            )
         elif role == "tender_manager":
-            notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile_id=profile_id)
+            # Tender manager can see notifications sent to them or sent by them to others
+            notification_list = Notification.objects.filter(
+                Q(profile_id=profile_id) | Q(sender_profile_id=profile_id)
+            )
         else:
+            # For other roles, fetch notifications sent to the profile_id
             notification_list = Notification.objects.filter(profile_id=profile_id)
 
+        # Serialize the notifications
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         print(serializer.data)
         return Response(serializer.data, status=200)
 
 
 class UpdateNotificationView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can update notifications
-
-    def patch(self, request):
-        data = request.data
-        notification_id = data.get('id')
-        if not notification_id:
-            return Response({"msg": "An id is required"}, status=400)
-
-        notification = get_object_or_404(Notification, id=notification_id)
-        serializer = NotificationsDetailsSerializers(notification, data=request.data, partial=True)
-
+    def patch(self,request):
+        data=request.data
+        profile_id=data.get('id')
+        if not profile_id: 
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        notification=get_object_or_404(Notification,id=profile_id)
+        serializer=NotificationsDetailsSerializers(notification,data=request.data,partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({"msg": "Edited successfully"}, status=200)
+            return Response({"msg": "editted successfully"},status=status.HTTP_200_OK)
         else:
-            return Response({"msg": "Something went wrong"}, status=400)
+            return Response({"msg": "something went wrong",}, status=status.HTTP_400_BAD_REQUEST)
+        
 
-    def get(self, request):
-        data = request.data
-        notification_id = data.get('id')
-        if not notification_id:
-            return Response({"msg": "An id is required"}, status=400)
-
-        notification = get_object_or_404(Notification, id=notification_id)
-        serializer = NotificationsDetailsSerializers(notification)
-        return Response(serializer.data, status=200)
-
-    def delete(self, request):
-        data = request.data
-        notification_id = data.get('id')
-        if not notification_id:
-            return Response({"msg": "An id is required"}, status=400)
-
-        notification = get_object_or_404(Notification, id=notification_id)
+    def get(self,request):
+        data=request.data
+        profile_id=data.get('id')
+        if not profile_id: 
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        notification=get_object_or_404(Notification,id=profile_id)
+        serializer=NotificationsDetailsSerializers(notification)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+    def delete(self,request):
+        data=request.data
+        profile_id=data.get('id')
+        if not profile_id: 
+            return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
+        notification=get_object_or_404(Notification,id=profile_id)
         notification.delete()
-        return Response({'msg': 'Deleted successfully'}, status=200)
+        return Response({'msg':'deleted succesfully'},status=status.HTTP_200_OK)
 
 
 class TenderViewerNotificationView(APIView):
     def get(self, request):
-        profile_id = request.query_params.get('profile_id')
-        role = request.query_params.get('role')
-
-        if role != "tender_viewer":
-            return Response({"msg": "Unauthorized"}, status=403)
-
-        # Fetch notifications sent by tender_manager
-        notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile__role="tender_manager")
+        role = request.GET.get("role")
+        
+        notification_list = Notification.objects.filter(profile__role=role)
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=200)
 
 
 class PNDTLicenseViewerNotificationView(APIView):
     def get(self, request):
-        profile_id = request.query_params.get('profile_id')
-        role = request.query_params.get('role')
-
-        if role != "pndt_license_viewer":
-            return Response({"msg": "Unauthorized"}, status=403)
-
-        # Fetch notifications sent by pndt_license_manager
-        notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile__role="pndt_license_manager")
+        role = request.GET.get("role")
+        
+        notification_list = Notification.objects.filter(profile__role=role)
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=200)
 
 
 class LicenseViewerNotificationView(APIView):
     def get(self, request):
-        profile_id = request.query_params.get('profile_id')
-        role = request.query_params.get('role')
-
-        if role not in ["internal_license_viewer", "external_license_viewer"]:
-            return Response({"msg": "Unauthorized"}, status=403)
-
-        # Fetch notifications sent by license_manager
-        notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile__role="license_manager")
+        role = request.GET.get("role")
+        
+        notification_list = Notification.objects.filter(profile__role=role)
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=200)
 
 
 class ExternalLicenseViewerNotificationView(APIView):
     def get(self, request):
-        profile_id = request.query_params.get('profile_id')
-        role = request.query_params.get('role')
-
-        if role != "external_license_viewer":
-            return Response({"msg": "Unauthorized"}, status=403)
-
-        # Fetch notifications sent by admin
-        notification_list = Notification.objects.filter(profile_id=profile_id, sender_profile__role="admin")
+        role = request.GET.get("role")
+        
+        notification_list = Notification.objects.filter(profile__role=role, sender_profile__role="admin")
         serializer = NotificationsDetailsSerializers(notification_list, many=True)
         return Response(serializer.data, status=200)
 
@@ -1366,6 +1355,25 @@ class DashboardStatsView(APIView):
             "active_pndt_licenses": active_pndt_licenses
         }, status=200)
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import License
+
+def format_license_data(licenses):
+    """
+    Formats license data into a list of dictionaries with only the required fields.
+    """
+    return [
+        {
+            "product_name": licen.product_name,
+            "license_number": licen.license_number,
+            "expiry_date": licen.expiry_date,
+            "date_of_approval": licen.date_of_approval,
+        }
+        for licen in licenses
+    ]
 
 class LicenseExpiryAndActiveByDate(APIView):
     def post(self, request):
