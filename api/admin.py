@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Feedback, Registration, RecentlyViewed
+from .models import Feedback, RecentlyViewed
 from .models import Profile, AdditionalDetails,License,Notification,TenderManager,PNDT_License,PersonalDetails,OTPVerification
 
 
@@ -27,7 +27,6 @@ class ProfileAdmin(admin.ModelAdmin):
         return ()
     
 #Register models with admin site
-admin.site.register(Registration)
 admin.site.register(Profile, ProfileAdmin)  #Use the custom admin class
 admin.site.register(AdditionalDetails)
 admin.site.register(License)

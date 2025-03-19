@@ -14,7 +14,7 @@ def send_password_email(sender, instance, **kwargs):
     Signal to send an email with the auto-generated password when a new Profile is created.
     """
     subject = 'Your Account Has Been Created'
-    message = f'Your account has been created. Use this password to access your account: {instance.password_str}'
+    message = f'Your account has been created.\nUse this password to access your account: {instance.password_str}.\nPlease change your username after logging into your account.'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [instance.email]  # Send the email to the user's email address
 

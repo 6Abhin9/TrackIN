@@ -1,8 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .serializers import FeedbackSerializer, RegistrationSerializers
-from .models import Registration
+from .serializers import FeedbackSerializer
 from django.shortcuts import get_object_or_404
 from .models import Profile,License,AdditionalDetails,Notification,TenderManager,PNDT_License,PersonalDetails
 from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,AdditionalDetailsGetSerializer,NotificationsDetailsSerializers,PersonalDetailsSerializers

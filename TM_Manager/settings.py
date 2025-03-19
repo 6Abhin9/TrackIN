@@ -159,7 +159,7 @@ JAZZMIN_SETTINGS = {
     # Top navigation bar links
     "topmenu_links": [
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"], "new_window": False, "icon": "fas fa-home"},
-        {"name": "Support", "url": "mailto:trackinn69@gmail.com", "new_window": True, "icon": "fas fa-life-ring"},
+        {"name": "Support", "url": "mailto:meddocx@gmail.com", "new_window": True, "icon": "fas fa-life-ring"},
         {"name": "Users", "url": "admin:auth_user_changelist", "permissions": ["auth.view_user"], "icon": "fas fa-users"},
     ],
 

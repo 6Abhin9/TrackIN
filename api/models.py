@@ -2,16 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
-class Registration(models.Model):
-    name=models.CharField(max_length=100,null=True,blank=True)
-    email=models.EmailField(null=True,blank=True)
-    address=models.CharField(max_length=100,null=True)
-    number=models.IntegerField(null=True,blank=True)
-
-    def __str__(self):
-        return self.name
-
-
 class Profile(AbstractUser):
     REQUIRED_FIELDS = ['username']
     USERNAME_FIELD = 'email'
@@ -67,47 +57,46 @@ class AdditionalDetails(models.Model):
     def __str__(self):
         return self.profile.first_name
     
+
+
 class License(models.Model):
+    # Updated LICENSE_TYPE choices
     LICENSE_TYPE = [
         ('manufacturing_license', 'Manufacturing License'),
         ('test_license', 'Test License'),
         ('import_license', 'Import License'),
-        ('export_license', 'Export License'),
+        ('warehouse_license', 'Warehouse License'),  # Changed from 'export_license'
     ]
 
-    application_type=models.CharField(max_length=50,choices=LICENSE_TYPE)
-    application_number=models.CharField(max_length=50, unique=True)
-    license_number=models.CharField(max_length=50, unique=True)
-    date_of_submission=models.DateField()
-    date_of_approval=models.DateField()
-    expiry_date=models.DateField()
+    application_type = models.CharField(max_length=50, choices=LICENSE_TYPE)
+    application_number = models.CharField(max_length=50, unique=True)
+    license_number = models.CharField(max_length=50, unique=True)
+    date_of_submission = models.DateField()
+    date_of_approval = models.DateField()
+    expiry_date = models.DateField()
 
-    PRODUCT_TYPE = [
-        ('choice1', 'choice1'),
-        ('choice2', 'choice2'),
-        ('choice3', 'choice3'),
-        ('choice4', 'choice4'),
-        
-    ]
-    product_type=models.CharField(max_length=50,choices=PRODUCT_TYPE)
-    product_name=models.CharField(max_length=100)
-    model_number=models.CharField(max_length=50)
-    intended_use=models.TextField(null=True,blank=True)
+    # Removed PRODUCT_TYPE choices and changed to TextField
+    product_type = models.TextField()  # Changed from CharField with choices
+    product_name = models.CharField(max_length=100)
+    model_number = models.CharField(max_length=50)
+    intended_use = models.TextField(null=True, blank=True)
+
+    # Updated CLASS_OF_DEVICE_TYPE choices to uppercase
     CLASS_OF_DEVICE_TYPE = [
-        ('choice1', 'choice1'),
-        ('choice2', 'choice2'),
-        ('choice3', 'choice3'),
-        ('choice4', 'choice4'),
+        ('A', 'A'),  
+        ('B', 'B'),  
+        ('C', 'C'),  
+        ('D', 'D'),  
     ]
-    class_of_device_type=models.CharField(max_length=50,choices=CLASS_OF_DEVICE_TYPE)
-    software=models.BooleanField(default=False)
-    legal_manufacturer=models.TextField(null=True,blank=True)
-    agent_address=models.TextField(null=True,blank=True)
-    accesories=models.TextField(null=True,blank=True)
-    shelf_life=models.TextField(null=True,blank=True)
-    pack_size=models.IntegerField(default=0)
-    attachments=models.FileField(null=True,blank=True)
-    viewed_date=models.DateTimeField(null=True,blank=True)
+    class_of_device_type = models.CharField(max_length=50, choices=CLASS_OF_DEVICE_TYPE)
+    software = models.BooleanField(default=False)
+    legal_manufacturer = models.TextField(null=True, blank=True)
+    agent_address = models.TextField(null=True, blank=True)
+    accesories = models.TextField(null=True, blank=True)
+    shelf_life = models.TextField(null=True, blank=True)
+    pack_size = models.IntegerField(default=0)
+    attachments = models.FileField(null=True, blank=True)
+    viewed_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.product_name
@@ -134,101 +123,106 @@ class Feedback(models.Model):
 
 
 class TenderManager(models.Model):
-    tender_id=models.CharField(max_length=25, primary_key=True)
-    tender_title=models.CharField(max_length=150)
-    issuing_authority=models.TextField()
-    tender_description=models.TextField(null=True, blank=True)
-    tender_attachments=models.FileField(null=True, blank=True)
-    EMD_amount=models.CharField(max_length=50)
-    payment_mode=[
-        ('online','online'),
-        ('offline','offline')
+    tender_id = models.CharField(max_length=25, primary_key=True)
+    tender_title = models.CharField(max_length=150)
+    issuing_authority = models.TextField()
+    tender_description = models.TextField(null=True, blank=True)
+    tender_attachments = models.FileField(null=True, blank=True)
+    EMD_amount = models.CharField(max_length=50)
+    payment_mode = [
+        ('online', 'online'),
+        ('offline', 'offline')
     ]
-    EMD_payment_mode=models.CharField(max_length=100,choices=payment_mode,null=True,blank=True)
-    EMD_payment_date=models.DateField(null=True,blank=True)
-    transaction_number=models.CharField(max_length=100,null=True,blank=True)
-    payment_attachments=models.FileField(null=True,blank=True)
-    TENDER_STATUS=[
+    EMD_payment_mode = models.CharField(max_length=100, choices=payment_mode, null=True, blank=True)
+    EMD_payment_date = models.DateField(null=True, blank=True)
+    transaction_number = models.CharField(max_length=100, null=True, blank=True)
+    payment_attachments = models.FileField(null=True, blank=True)
+    TENDER_STATUS = [
         ('applied', 'applied'),
         ('completed', 'completed')
     ]
-    tender_status=models.CharField(max_length=100,choices=TENDER_STATUS,default='applied')
-    forfeiture_status=models.BooleanField(default=False)
-    forfeiture_reason=models.TextField(null=True,blank=True)
-    EMD_refund_status=models.BooleanField()
-    EMD_refund_date=models.DateField(null=True,blank=True)
-    BID_OUTCOME=[
+    tender_status = models.CharField(max_length=100, choices=TENDER_STATUS, default='applied')
+    forfeiture_status = models.BooleanField(default=False)
+    forfeiture_reason = models.TextField(null=True, blank=True)
+    EMD_refund_status = models.BooleanField()
+    EMD_refund_date = models.DateField(null=True, blank=True)
+    BID_OUTCOME = [
         ('won', 'won'),
         ('lost', 'lost'),
         ('not_declared', 'not_declared')
     ]
-    bid_outcome=models.CharField(max_length=100,choices=BID_OUTCOME,default='not_declared')
+    bid_outcome = models.CharField(max_length=100, choices=BID_OUTCOME, default='not_declared')
+    tender_handler = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'role': 'tender_viewer'})
 
-    def _str_(self):
+    def __str__(self):
         return self.tender_id
-# class TenderManager(models.Model):
 
 
 class PNDT_License(models.Model):
-    license_number=models.CharField(max_length=50)
-    application_number=models.CharField(max_length=50)
-    submission_date=models.DateField()
-    expiry_date=models.DateField()
-    approval_date=models.DateField()
-    PRODUCT_TYPE = [
-        ('choice1', 'choice1'),
-        ('choice2', 'choice2'),
-        ('choice3', 'choice3'),
-        ('choice4', 'choice4'),
-    ]
-    product_type=models.CharField(max_length=150,choices=PRODUCT_TYPE)
-    product_name=models.TextField()
-    model_number=models.CharField(max_length=50)
+    license_number = models.CharField(max_length=50)
+    application_number = models.CharField(max_length=50)
+    submission_date = models.DateField()
+    expiry_date = models.DateField()
+    approval_date = models.DateField()
+    
+    product_type = models.TextField()
+    product_name = models.TextField()
+    model_number = models.CharField(max_length=50)
+    
     STATES = [
-        ('STATE_1', 'State 1'),
-        ('STATE_2', 'State 2'),
-        ('STATE_3', 'State 3'),
-        ('STATE_4', 'State 4'),
-        ('STATE_5', 'State 5'),
-        ('STATE_6', 'State 6'),
-        ('STATE_7', 'State 7'),
-        ('STATE_8', 'State 8'),
-        ('STATE_9', 'State 9'),
-        ('STATE_10', 'State 10'),
-        ('STATE_11', 'State 11'),
-        ('STATE_12', 'State 12'),
-        ('STATE_13', 'State 13'),
-        ('STATE_14', 'State 14'),
-        ('STATE_15', 'State 15'),
-        ('STATE_16', 'State 16'),
-        ('STATE_17', 'State 17'),
-        ('STATE_18', 'State 18'),
-        ('STATE_19', 'State 19'),
-        ('STATE_20', 'State 20'),
-        ('STATE_21', 'State 21'),
-        ('STATE_22', 'State 22'),
-        ('STATE_23', 'State 23'),
-        ('STATE_24', 'State 24'),
-        ('STATE_25', 'State 25'),
-        ('STATE_26', 'State 26'),
-        ('STATE_27', 'State 27'),
-        ('STATE_28', 'State 28'),
-        ('STATE_29', 'State 29'),
+        ('Andhra Pradesh', 'Andhra Pradesh'),
+        ('Arunachal Pradesh', 'Arunachal Pradesh'),
+        ('Assam', 'Assam'),
+        ('Bihar', 'Bihar'),
+        ('Chhattisgarh', 'Chhattisgarh'),
+        ('Goa', 'Goa'),
+        ('Gujarat', 'Gujarat'),
+        ('Haryana', 'Haryana'),
+        ('Himachal Pradesh', 'Himachal Pradesh'),
+        ('Jharkhand', 'Jharkhand'),
+        ('Karnataka', 'Karnataka'),
+        ('Kerala', 'Kerala'),
+        ('Madhya Pradesh', 'Madhya Pradesh'),
+        ('Maharashtra', 'Maharashtra'),
+        ('Manipur', 'Manipur'),
+        ('Meghalaya', 'Meghalaya'),
+        ('Mizoram', 'Mizoram'),
+        ('Nagaland', 'Nagaland'),
+        ('Odisha', 'Odisha'),
+        ('Punjab', 'Punjab'),
+        ('Rajasthan', 'Rajasthan'),
+        ('Sikkim', 'Sikkim'),
+        ('Tamil Nadu', 'Tamil Nadu'),
+        ('Telangana', 'Telangana'),
+        ('Tripura', 'Tripura'),
+        ('Uttar Pradesh', 'Uttar Pradesh'),
+        ('Uttarakhand', 'Uttarakhand'),
+        ('West Bengal', 'West Bengal'),
+        ('Andaman and Nicobar Islands', 'Andaman and Nicobar Islands'),
+        ('Chandigarh', 'Chandigarh'),
+        ('Dadra and Nagar Haveli and Daman and Diu', 'Dadra and Nagar Haveli and Daman and Diu'),
+        ('Delhi', 'Delhi'),
+        ('Jammu and Kashmir', 'Jammu and Kashmir'),
+        ('Ladakh', 'Ladakh'),
+        ('Lakshadweep', 'Lakshadweep'),
+        ('Puducherry', 'Puducherry')
     ]
-
-    state = models.CharField(max_length=10, choices=STATES, default='STATE_1')
-    intended_use=models.TextField()
-    CLASS_OF_DEVICE=[
-        ('class1','class1'),
-        ('class2','class2'),
-        ('class3','class3'),
-        ('ultrasonic','ultrasonic')
+    state = models.CharField(max_length=50, choices=STATES, default='Andhra Pradesh')
+    
+    intended_use = models.TextField()
+    
+    CLASS_OF_DEVICE = [
+        ('A', 'A'),
+        ('B', 'B'),
+        ('C', 'C'),
+        ('D', 'D')
     ]
-    class_of_device=models.CharField(max_length=50, choices=CLASS_OF_DEVICE)
-    software=models.BooleanField(default=False)
-    legal_manufacturer=models.TextField()
-    authorize_agent_address=models.TextField()
-    attachments=models.FileField(null=True,blank=True)
+    class_of_device = models.CharField(max_length=1, choices=CLASS_OF_DEVICE)
+    
+    software = models.BooleanField(default=False)
+    legal_manufacturer = models.TextField()
+    authorize_agent_address = models.TextField()
+    attachments = models.FileField(null=True, blank=True)
     
     def __str__(self):
         return self.product_name

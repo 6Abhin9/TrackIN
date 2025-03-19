@@ -1,12 +1,8 @@
 from rest_framework import serializers
-from .models import Feedback, PersonalDetails, Registration
+from .models import Feedback, PersonalDetails 
 from .models import Profile,AdditionalDetails,License,Notification,TenderManager,PNDT_License, TenderManager
 
 
-class RegistrationSerializers(serializers.ModelSerializer):
-    class Meta:
-        model=Registration
-        fields='__all__'
 
 class ProfileSerializers(serializers.ModelSerializer):
     class Meta:
