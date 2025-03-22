@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .serializers import FeedbackSerializer
 from django.shortcuts import get_object_or_404
-from .models import Profile,License,AdditionalDetails,Notification,TenderManager,PNDT_License,PersonalDetails
+from .models import Profile,License,AdditionalDetails,Notification,Tenders,PNDT_License,PersonalDetails
 from .serializers import AdditionalDetailsSerializers,LicenseDetailsSerializers,AdditionalDetailsGetSerializer,NotificationsDetailsSerializers,PersonalDetailsSerializers
 from .serializers import TenderDetailsSerializers
 from .serializers import PNDTLicenseSerializers,ProfileSerializers
@@ -695,7 +695,7 @@ class ChangeForfietStatusView(APIView):
         tender_id=request.data.get("tender_id")
         if not tender_id:
             return Response({"msg":"An id is required"},status=status.HTTP_400_BAD_REQUEST)
-        tender_obj=get_object_or_404(TenderManager,id=tender_id)
+        tender_obj=get_object_or_404(Tenders,id=tender_id)
         forfeiture_reason=request.data.get("forfeiture_reason")
         if not forfeiture_reason:
             return Response({"msg":"A reason is required"},status=status.HTTP_400_BAD_REQUEST)
@@ -812,7 +812,7 @@ class DownloadTenderExcelReport(APIView):
             ("Forfeiture Reason", 30),
         ]
 
-        tenders = TenderManager.objects.all()
+        tenders = Tenders.objects.all()
         data = [
             [
                 index,
@@ -839,7 +839,7 @@ class TenderStatusView(APIView):
     def get(self, request):
         status_filter = request.GET.get("status")
 
-        tenders = TenderManager.objects.all()
+        tenders = Tenders.objects.all()
         completed_tenders = []
         rejected_tenders = []
         pending_tenders = []
@@ -960,7 +960,7 @@ class ListTenderView(APIView):
         EMD_payment_status=request.GET.get("EMD_payment_status")
         forfeiture_status=request.GET.get("forfeiture_status")
         EMD_refund_status=request.GET.get("EMD_refund_status")
-        ListTenderView=TenderManager.objects.all()
+        ListTenderView=Tenders.objects.all()
 
         if EMD_payment_status:
             ListTenderView=ListTenderView.filter(EMD_payment_status=EMD_payment_status)
@@ -977,7 +977,7 @@ class UpdateTenderView(APIView):
         if not tender_id:
             return Response({"msg": "A tender_id is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        tender_obj = get_object_or_404(TenderManager, tender_id=tender_id)
+        tender_obj = get_object_or_404(Tenders, tender_id=tender_id)
         
         serializer = TenderDetailsSerializers(tender_obj, data=request.data, partial=True)
         if serializer.is_valid():
@@ -992,7 +992,7 @@ class UpdateTenderView(APIView):
         if not tender_id:
             return Response({"msg": "id is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        tender_obj = TenderManager.objects.filter(tender_id=tender_id).first()
+        tender_obj = Tenders.objects.filter(tender_id=tender_id).first()
         if not tender_obj:
             return Response({"msg": "Tender not found"}, status=status.HTTP_404_NOT_FOUND)
         
@@ -1004,7 +1004,7 @@ class UpdateTenderView(APIView):
         if not tender_id:
             return Response({"msg": "id is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        tender_obj = TenderManager.objects.filter(tender_id=tender_id).first()
+        tender_obj = Tenders.objects.filter(tender_id=tender_id).first()
         if not tender_obj:
             return Response({"msg": "Tender not found"}, status=status.HTTP_404_NOT_FOUND)
         
@@ -1016,13 +1016,13 @@ class UpdateTenderView(APIView):
 class TotalEMDAmountView(View):
     def get(self, request, *args, **kwargs):
         # Calculate the total EMD amount
-        total_emd = TenderManager.objects.aggregate(total_emd_amount=Sum('EMD_amount'))['total_emd_amount'] or 0
+        total_emd = Tenders.objects.aggregate(total_emd_amount=Sum('EMD_amount'))['total_emd_amount'] or 0
 
         # Calculate the total pending EMD amount
-        total_pending_emd = TenderManager.objects.filter(EMD_refund_status=False).aggregate(total_pending_emd_amount=Sum('EMD_amount'))['total_pending_emd_amount'] or 0
+        total_pending_emd = Tenders.objects.filter(EMD_refund_status=False).aggregate(total_pending_emd_amount=Sum('EMD_amount'))['total_pending_emd_amount'] or 0
 
         # Calculate the total number of tenders
-        total_tenders = TenderManager.objects.count()
+        total_tenders = Tenders.objects.count()
 
         # Prepare the response data
         response_data = {
@@ -1039,7 +1039,7 @@ class CountUsersView(APIView):
         user_count = Profile.objects.exclude(role='admin').count()
         total_licenses = License.objects.count()
         total_pndt_licenses = PNDT_License.objects.count()
-        total_tenders = TenderManager.objects.count()
+        total_tenders = Tenders.objects.count()
         
         return Response({
             "total_users": user_count,
@@ -1145,21 +1145,21 @@ class PNDT_LicenseStatisticsView(APIView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import TenderManager
+from .models import Tenders
 
 class TenderCountAPIView(APIView):
     def get(self, request, *args, **kwargs):
         # Count tenders with status 'applied'
-        applied_count = TenderManager.objects.filter(tender_status='applied').count()
+        applied_count = Tenders.objects.filter(tender_status='applied').count()
 
         # Count tenders with status 'completed' and bid outcome 'won'
-        completed_won_count = TenderManager.objects.filter(tender_status='completed', bid_outcome='won').count()
+        completed_won_count = Tenders.objects.filter(tender_status='completed', bid_outcome='won').count()
 
         # Count tenders with status 'completed' and bid outcome 'lost'
-        rejected_count = TenderManager.objects.filter(tender_status='completed', bid_outcome='lost').count()
+        rejected_count = Tenders.objects.filter(tender_status='completed', bid_outcome='lost').count()
 
         # Count tenders with status 'completed' and EMD refund status False
-        emd_pending_count = TenderManager.objects.filter(tender_status='completed', EMD_refund_status=False).count()
+        emd_pending_count = Tenders.objects.filter(tender_status='completed', EMD_refund_status=False).count()
 
         # Return the counts in a response
         return Response({
@@ -1173,33 +1173,33 @@ class TenderCountAPIView(APIView):
 
 
 from rest_framework import generics
-from .models import TenderManager
+from .models import Tenders
 from .serializers import TenderManagerSerializer
 
 class AppliedTenderList(generics.ListAPIView):
     serializer_class = TenderManagerSerializer
 
     def get_queryset(self):
-        return TenderManager.objects.filter(tender_status='applied')  
+        return Tenders.objects.filter(tender_status='applied')  
 
 class AwardedTenderList(generics.ListAPIView):
     serializer_class = TenderManagerSerializer
 
     def get_queryset(self):
-        return TenderManager.objects.filter(tender_status='completed', bid_outcome='won')
+        return Tenders.objects.filter(tender_status='completed', bid_outcome='won')
     
 class TendersnotawardedList(generics.ListAPIView):
     serializer_class = TenderManagerSerializer
 
     def get_queryset(self):
-        return TenderManager.objects.filter(tender_status='completed', bid_outcome='lost')
+        return Tenders.objects.filter(tender_status='completed', bid_outcome='lost')
     
 class CompletedTendersWithoutEMDRefundList(generics.ListAPIView):
     serializer_class = TenderManagerSerializer
 
     def get_queryset(self):
         # Filter tenders where tender_status is 'completed' and EMD_refund_status is False
-        return TenderManager.objects.filter(tender_status='completed', EMD_refund_status=False)
+        return Tenders.objects.filter(tender_status='completed', EMD_refund_status=False)
     
 
 
@@ -1207,16 +1207,16 @@ class CompletedTendersWithoutEMDRefundList(generics.ListAPIView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import TenderManager
+from .models import Tenders
 from .serializers import TenderManagerSerializer
 
 class Top5pendingemd(APIView):
     def get(self, request):
         # Filter tenders with status 'completed' and EMD refund status 'False'
-        tenders_refund_pending = TenderManager.objects.filter(tender_status='completed', EMD_refund_status=False)
+        tenders_refund_pending = Tenders.objects.filter(tender_status='completed', EMD_refund_status=False)
         
         # Filter all tenders with status 'completed' (regardless of refund status)
-        tenders_completed = TenderManager.objects.filter(tender_status='completed')
+        tenders_completed = Tenders.objects.filter(tender_status='completed')
         
         # Calculate the total EMD amount to be refunded (for refund pending tenders)
         total_emd_refund_pending = 0
@@ -1262,18 +1262,18 @@ class Top5pendingemd(APIView):
     from django.views import View
 from django.http import JsonResponse
 from django.db.models import Sum
-from .models import TenderManager
+from .models import Tenders
 
 class TotalEMDAmountView(View):
     def get(self, request, *args, **kwargs):
         # Calculate the total EMD amount for tenders with status 'completed'
-        total_emd = TenderManager.objects.filter(tender_status='completed').aggregate(total_emd_amount=Sum('EMD_amount'))['total_emd_amount'] or 0
+        total_emd = Tenders.objects.filter(tender_status='completed').aggregate(total_emd_amount=Sum('EMD_amount'))['total_emd_amount'] or 0
 
         # Calculate the total pending EMD amount for tenders with status 'completed' and EMD_refund_status False
-        total_pending_emd = TenderManager.objects.filter(tender_status='completed', EMD_refund_status=False).aggregate(total_pending_emd_amount=Sum('EMD_amount'))['total_pending_emd_amount'] or 0
+        total_pending_emd = Tenders.objects.filter(tender_status='completed', EMD_refund_status=False).aggregate(total_pending_emd_amount=Sum('EMD_amount'))['total_pending_emd_amount'] or 0
 
         # Calculate the total number of tenders with status 'completed' and EMD_refund_status False
-        total_pending_emd_count = TenderManager.objects.filter(tender_status='completed', EMD_refund_status=False).count()
+        total_pending_emd_count = Tenders.objects.filter(tender_status='completed', EMD_refund_status=False).count()
 
         # Prepare the response data
         response_data = {
@@ -1290,7 +1290,7 @@ class TotalEMDAmountView(View):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import TenderManager
+from .models import Tenders
 from .serializers import TenderDetailsSerializers
 
 class ListTenderView(APIView):
@@ -1301,7 +1301,7 @@ class ListTenderView(APIView):
         EMD_refund_status = request.GET.get("EMD_refund_status")
 
         # Start with all tenders
-        ListTenderView = TenderManager.objects.all()
+        ListTenderView = Tenders.objects.all()
 
         # Apply filters based on query parameters
         if EMD_payment_status:
@@ -1336,12 +1336,12 @@ class DashboardStatsView(APIView):
         # **Total Counts**
         total_users = Profile.objects.exclude(role='admin').count()  # Exclude admin users
         total_licenses = License.objects.count()
-        total_tenders = TenderManager.objects.count()
+        total_tenders = Tenders.objects.count()
         total_pndt_licenses = PNDT_License.objects.count()
 
         # **Active Counts**
         active_licenses = License.objects.filter(expiry_date__gte=current_date).count()
-        active_tenders = TenderManager.objects.exclude(tender_status='completed').count()
+        active_tenders = Tenders.objects.exclude(tender_status='completed').count()
         active_pndt_licenses = PNDT_License.objects.filter(expiry_date__gte=current_date).count()
 
         return Response({
@@ -1386,6 +1386,43 @@ class LicenseExpiryAndActiveByDate(APIView):
             return Response(
                 {
                     "licenses": formatted_licenses if formatted_licenses else "No licenses found.",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred while fetching data: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+
+#PNDT license calender API
+def format_pndt_license_data(pndt_licenses):
+    """
+    Formats PNDT license data into a list of dictionaries with only the required fields.
+    """
+    return [
+        {
+            "license_number": pndt.license_number,
+            "expiry_date": pndt.expiry_date,
+            "approval_date": pndt.approval_date,
+            "product_name": pndt.product_name,
+        }
+        for pndt in pndt_licenses
+    ]
+
+class PNDTLicenseCalenderList(APIView):
+    def post(self, request):
+        try:
+            # Fetch all PNDT licenses from the database
+            all_pndt_licenses = PNDT_License.objects.all()
+
+            # Format the data with only the required fields
+            formatted_pndt_licenses = format_pndt_license_data(all_pndt_licenses)
+
+            return Response(
+                {
+                    "pndt_licenses": formatted_pndt_licenses if formatted_pndt_licenses else "No PNDT licenses found.",
                 },
                 status=status.HTTP_200_OK,
             )

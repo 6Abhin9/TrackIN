@@ -57,6 +57,7 @@ urlpatterns = [
     path('tenderlist/', views.ListTenderView.as_view()),
     path('totalusers/', views.DashboardStatsView.as_view()),
     path('update-profile-image/', UpdateProfileImageView.as_view()),
+    path('PNDT_license_calendar/', views.PNDTLicenseCalenderList.as_view()),
     path('updateprofile/', UpdateProfileImageView.as_view()),
     path('license_calendar/', views.LicenseExpiryAndActiveByDate.as_view())
 

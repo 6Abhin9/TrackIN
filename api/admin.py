@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Feedback, RecentlyViewed
-from .models import Profile, AdditionalDetails,License,Notification,TenderManager,PNDT_License,PersonalDetails,OTPVerification
+from .models import Profile, AdditionalDetails,License,Notification,Tenders,PNDT_License,PersonalDetails,OTPVerification
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -31,7 +31,7 @@ admin.site.register(Profile, ProfileAdmin)  #Use the custom admin class
 admin.site.register(AdditionalDetails)
 admin.site.register(License)
 admin.site.register(Notification)
-admin.site.register(TenderManager)
+admin.site.register(Tenders)
 admin.site.register(PNDT_License)
 admin.site.register(PersonalDetails)
 admin.site.register(OTPVerification)

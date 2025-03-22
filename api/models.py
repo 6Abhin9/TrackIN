@@ -41,7 +41,6 @@ class PersonalDetails(models.Model):
     gender = models.CharField(max_length=50, null=True, blank=True)  # Free-text input
     blood_group = models.CharField(max_length=50, null=True, blank=True)  # Free-text input
     nationality = models.CharField(max_length=50, null=True, blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
 
     def __str__(self):
         return f"Personal Details for {self.profile.email}"
@@ -122,7 +121,7 @@ class Feedback(models.Model):
         return f"Feedback from {self.name} ({self.email})"
 
 
-class TenderManager(models.Model):
+class Tenders(models.Model):
     tender_id = models.CharField(max_length=25, primary_key=True)
     tender_title = models.CharField(max_length=150)
     issuing_authority = models.TextField()
