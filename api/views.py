@@ -148,20 +148,54 @@ class AdminAddUsersApi(APIView):
         except Exception as e:
             return Response({"msg": "Something went wrong", "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+import logging
+        
+logger = logging.getLogger(__name__)
+
 class UpdateProfileImageView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def patch(self, request):
-        user = request.user
-        image = request.FILES.get('image')
-
-        if not image:
-            return Response({"msg": "No image provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-        user.image = image
-        user.save()
-
-        return Response({"msg": "Profile image updated successfully"}, status=status.HTTP_200_OK)
+    def patch(self, request, profile_id):  # Changed from user_id to profile_id
+        try:
+            image = request.FILES.get('image')
+            
+            if not image:
+                return Response(
+                    {"error": "No image provided"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if image.size > 2 * 1024 * 1024:
+                return Response(
+                    {"error": "Image size should be less than 2MB"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            user = Profile.objects.get(id=profile_id)  # Changed to use profile_id
+            
+            if user.image:
+                user.image.delete(save=False)
+            
+            user.image = image
+            user.save()
+            
+            return Response(
+                {
+                    "message": "Profile image updated successfully",
+                    "image_url": user.image.url if user.image else None
+                },
+                status=status.HTTP_200_OK
+            )
+            
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Error updating profile image: {str(e)}")
+            return Response(
+                {"error": "An error occurred while updating the profile image"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class ListUsersView(APIView):
     def get(self,request):
@@ -1423,6 +1457,42 @@ class PNDTLicenseCalenderList(APIView):
             return Response(
                 {
                     "pndt_licenses": formatted_pndt_licenses if formatted_pndt_licenses else "No PNDT licenses found.",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred while fetching data: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+def format_tender_data(tenders):
+    """
+    Formats tender data into a list of dictionaries with only the required fields.
+    """
+    return [
+        {
+            "tender_id": tender.tender_id,
+            "emd_payment_date": tender.EMD_payment_date,  # EMD payment date
+            "emd_refund_date": tender.EMD_refund_date,      # EMD refund date
+            "tender_name": tender.tender_title,             # Tender name (title)
+        }
+        for tender in tenders
+    ]
+
+class TenderCalender(APIView):
+    def post(self, request):
+        try:
+            # Fetch all tenders from the database
+            all_tenders = Tenders.objects.all()
+
+            # Format the data with only the required fields
+            formatted_tenders = format_tender_data(all_tenders)
+
+            return Response(
+                {
+                    "tenders": formatted_tenders if formatted_tenders else "No tenders found.",
                 },
                 status=status.HTTP_200_OK,
             )

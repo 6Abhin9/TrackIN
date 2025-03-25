@@ -8,6 +8,7 @@ urlpatterns = [
     path('editpersonaldetails/<int:profile_id>/', views.EditPersonalDetailsApi.as_view(), name='editpersonaldetails-get'),
     path('editpersonaldetails/', views.EditPersonalDetailsApi.as_view(), name='editpersonaldetails-patch'),
     path('changeaccountaddress/<int:profile_id>/', views.ChangeAddressApi.as_view(), name='changeaccountaddress'),
+    path('updateprofileimage/<int:profile_id>/', views.UpdateProfileImageView.as_view(), name='update-profile-image'),
     path('license/',views.AddLicense.as_view()),
     path('list/',views.LicenseListView.as_view()),
     path('edit/',views.UpdateLicenseView.as_view()),
@@ -59,6 +60,7 @@ urlpatterns = [
     path('update-profile-image/', UpdateProfileImageView.as_view()),
     path('PNDT_license_calendar/', views.PNDTLicenseCalenderList.as_view()),
     path('updateprofile/', UpdateProfileImageView.as_view()),
-    path('license_calendar/', views.LicenseExpiryAndActiveByDate.as_view())
+    path('license_calendar/', views.LicenseExpiryAndActiveByDate.as_view()),
+    path('tender_calendar/', views.TenderCalender.as_view())
 
 ]
